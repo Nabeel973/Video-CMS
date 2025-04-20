@@ -1091,6 +1091,12 @@
                             <vue-collapsible :isOpen="activeDropdown === 'pages'">
                                 <ul class="sub-menu text-gray-500">
                                     <li>
+                                        <router-link to="/admin/tags" @click="toggleMobileMenu">{{ $t('tags') }}</router-link>
+                                    </li>
+                                    <li>
+                                        <router-link to="/admin/genres" @click="toggleMobileMenu">{{ $t('genres') }}</router-link>
+                                    </li>
+                                    <li>
                                         <router-link to="/pages/knowledge-base" @click="toggleMobileMenu">{{ $t('knowledge_base') }}</router-link>
                                     </li>
                                     <li @click="toggleMobileMenu">

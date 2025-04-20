@@ -36,4 +36,7 @@ app.use(i18n);
 import Popper from "vue3-popper";
 app.component("Popper", Popper);
 
+// Import axios configuration
+import "@/axios";
+
 app.mount("#app");

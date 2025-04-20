@@ -2,6 +2,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\GenreController;
+use App\Http\Controllers\ReleaseController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\Api\Auth\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,3 +27,34 @@ Route::post('/auth/login', [App\Http\Controllers\Api\Auth\AuthController::class,
 Route::post('/auth/register', [App\Http\Controllers\Api\Auth\AuthController::class, 'register']);
 Route::post('/auth/logout', [App\Http\Controllers\Api\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/auth/user', [App\Http\Controllers\Api\Auth\AuthController::class, 'user'])->middleware('auth:sanctum');
+
+// Protected API routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Genres
+    Route::get('/genres', [GenreController::class, 'list']);
+    Route::post('/genres', [GenreController::class, 'store']);
+    Route::get('/genres/{genre}', [GenreController::class, 'show']);
+    Route::put('/genres/{genre}', [GenreController::class, 'update']);
+    Route::delete('/genres/{genre}', [GenreController::class, 'destroy']);
+
+    // Categories
+    Route::get('/categories', [CategoryController::class, 'list']);
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+    Route::put('/categories/{category}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
+    // Releases
+    Route::get('/releases', [ReleaseController::class, 'list']);
+    Route::post('/releases', [ReleaseController::class, 'store']);
+    Route::get('/releases/{release}', [ReleaseController::class, 'show']);
+    Route::put('/releases/{release}', [ReleaseController::class, 'update']);
+    Route::delete('/releases/{release}', [ReleaseController::class, 'destroy']);
+
+    // Tags
+    Route::get('/tags', [TagController::class, 'list']);
+    Route::post('/tags', [TagController::class, 'store']);
+    Route::get('/tags/{tag}', [TagController::class, 'show']);
+    Route::put('/tags/{tag}', [TagController::class, 'update']);
+    Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
+});
