@@ -3,6 +3,7 @@ import { useAppStore } from '@/stores/index';
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
 import HomeView from '../views/index.vue';
+import UserManagementView from '../views/user-index.vue';
 
 const routes: RouteRecordRaw[] = [
     // dashboard
@@ -26,6 +27,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import(/* webpackChunkName: "auth-boxed-lockscreen" */ '../views/auth/boxed-lockscreen.vue'),
         meta: { layout: 'auth' },
     },
+    // {
+    //     path: '/user-management',
+    //     name: 'user-management',
+    //     component: () => import(/* webpackChunkName: "auth-boxed-lockscreen" */UserManagementView ),
+    //     meta: { layout: 'auth' },
+    // },
+    { path: '/user-management', name: 'user-management', component: UserManagementView },
 ];
 
 const router = createRouter({

@@ -1034,6 +1034,9 @@
                                         <router-link to="/users/profile" @click="toggleMobileMenu">{{ $t('profile') }}</router-link>
                                     </li>
                                     <li>
+                                        <router-link to="/user-management" @click="toggleMobileMenu">{{ $t('list') }}</router-link>
+                                    </li>
+                                    <li>
                                         <router-link to="/users/user-account-settings" @click="toggleMobileMenu">{{ $t('account_settings') }}</router-link>
                                     </li>
                                 </ul>
@@ -1276,10 +1279,10 @@
 </template>
 
 <script lang="ts" setup>
-    import { ref, onMounted } from 'vue';
+    import { onMounted, ref } from 'vue';
 
     import { useAppStore } from '@/stores/index';
-    import VueCollapsible from 'vue-height-collapsible/vue3';
+import VueCollapsible from 'vue-height-collapsible/vue3';
     const store = useAppStore();
     const activeDropdown: any = ref('');
     const subActive: any = ref('');
