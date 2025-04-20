@@ -1,4 +1,5 @@
 import appSetting from '@/app-setting';
+import { useAuthStore } from '@/stores/auth';
 import { useAppStore } from '@/stores/index';
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
@@ -49,8 +50,22 @@ const router = createRouter({
     },
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const store = useAppStore();
+    const authStore = useAuthStore();
+    const publicPages = ['/auth/boxed-signin', '/auth/boxed-signup'];
+    const authRequired = !publicPages.includes(to.path);
+
+    if (authRequired && !authStore.isLoggedIn) {
+        // If there's a token, try to fetch the user
+        if (authStore.token) {
+            await authStore.fetchUser();
+            if (authStore.isLoggedIn) {
+                return next();
+            }
+        }
+        return next('/auth/boxed-signin');
+    }
 
     if (to?.meta?.layout == 'auth') {
         store.setMainLayout('auth');

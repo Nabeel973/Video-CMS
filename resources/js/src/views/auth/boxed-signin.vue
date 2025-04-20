@@ -64,11 +64,22 @@
                             <h1 class="text-3xl font-extrabold uppercase !leading-snug text-primary md:text-4xl">Sign in</h1>
                             <p class="text-base font-bold leading-normal text-white-dark">Enter your email and password to login</p>
                         </div>
-                        <form class="space-y-5 dark:text-white" @submit.prevent="router.push('/')">
+                        <form class="space-y-5 dark:text-white" @submit.prevent="handleSubmit">
+                            <div v-if="error" class="mb-4 p-3 rounded bg-red-100 text-red-500 dark:bg-red-900/30">
+                                {{ error }}
+                            </div>
                             <div>
                                 <label for="Email">Email</label>
                                 <div class="relative text-white-dark">
-                                    <input id="Email" type="email" placeholder="Enter Email" class="form-input ps-10 placeholder:text-white-dark" />
+                                    <input 
+                                        id="Email" 
+                                        v-model="form.email"
+                                        type="email" 
+                                        placeholder="Enter Email" 
+                                        class="form-input ps-10 placeholder:text-white-dark" 
+                                        :class="{ 'border-red-500': formErrors.email }"
+                                        required
+                                    />
                                     <span class="absolute start-4 top-1/2 -translate-y-1/2">
                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                                             <path
@@ -83,11 +94,22 @@
                                         </svg>
                                     </span>
                                 </div>
+                                <div v-if="formErrors.email" class="mt-1 text-sm text-red-500">
+                                    {{ formErrors.email }}
+                                </div>
                             </div>
                             <div>
                                 <label for="Password">Password</label>
                                 <div class="relative text-white-dark">
-                                    <input id="Password" type="password" placeholder="Enter Password" class="form-input ps-10 placeholder:text-white-dark" />
+                                    <input 
+                                        id="Password" 
+                                        v-model="form.password"
+                                        type="password" 
+                                        placeholder="Enter Password" 
+                                        class="form-input ps-10 placeholder:text-white-dark" 
+                                        :class="{ 'border-red-500': formErrors.password }"
+                                        required
+                                    />
                                     <span class="absolute start-4 top-1/2 -translate-y-1/2">
                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                                             <path
@@ -114,6 +136,9 @@
                                         </svg>
                                     </span>
                                 </div>
+                                <div v-if="formErrors.password" class="mt-1 text-sm text-red-500">
+                                    {{ formErrors.password }}
+                                </div>
                             </div>
                             <div>
                                 <label class="flex cursor-pointer items-center">
@@ -121,8 +146,12 @@
                                     <span class="text-white-dark">Subscribe to weekly newsletter</span>
                                 </label>
                             </div>
-                            <button type="submit" class="btn btn-gradient !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]">
-                                Sign in
+                            <button 
+                                type="submit" 
+                                class="btn btn-gradient !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]"
+                                :disabled="loading"
+                            >
+                                {{ loading ? 'Signing in...' : 'Sign in' }}
                             </button>
                         </form>
                         <div class="relative my-7 text-center md:mb-9">
@@ -230,14 +259,91 @@
     </div>
 </template>
 <script lang="ts" setup>
-    import { computed, reactive } from 'vue';
-    import { useI18n } from 'vue-i18n';
     import appSetting from '@/app-setting';
-    import { useAppStore } from '@/stores/index';
-    import { useRouter } from 'vue-router';
-    import { useMeta } from '@/composables/use-meta';
+import { useMeta } from '@/composables/use-meta';
+import { useAuthStore } from '@/stores/auth';
+import { useAppStore } from '@/stores/index';
+import { computed, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+
     useMeta({ title: 'Login Boxed' });
     const router = useRouter();
+    const authStore = useAuthStore();
+
+    const form = reactive({
+        email: '',
+        password: '',
+    });
+
+    const formErrors = reactive({
+        email: '',
+        password: '',
+    });
+
+    const error = ref('');
+    const loading = ref(false);
+
+    const validateForm = () => {
+        let isValid = true;
+        
+        // Reset errors
+        formErrors.email = '';
+        formErrors.password = '';
+        
+        // Email validation
+        if (!form.email) {
+            formErrors.email = 'Email is required';
+            isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            formErrors.email = 'Please enter a valid email address';
+            isValid = false;
+        }
+        
+        // Password validation
+        if (!form.password) {
+            formErrors.password = 'Password is required';
+            isValid = false;
+        } else if (form.password.length < 8) {
+            formErrors.password = 'Password must be at least 8 characters';
+            isValid = false;
+        }
+        
+        return isValid;
+    };
+
+    const handleSubmit = async () => {
+        // Clear previous errors
+        error.value = '';
+        authStore.clearErrors();
+        
+        // Validate form
+        if (!validateForm()) {
+            return;
+        }
+        
+        loading.value = true;
+
+        const result = await authStore.login(form.email, form.password);
+        
+        if (result.success) {
+            router.push('/');
+        } else {
+            error.value = result.error;
+            
+            // Handle validation errors from the server
+            if (result.validationErrors) {
+                if (result.validationErrors.email) {
+                    formErrors.email = result.validationErrors.email[0];
+                }
+                if (result.validationErrors.password) {
+                    formErrors.password = result.validationErrors.password[0];
+                }
+            }
+        }
+
+        loading.value = false;
+    };
 
     const store = useAppStore();
     // multi language
