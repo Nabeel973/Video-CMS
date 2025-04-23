@@ -85,7 +85,8 @@ class CategoryController extends Controller
             $this->categoryService->delete($category);
 
             return response()->json([
-                'message' => 'Category deleted successfully'
+                'message' => 'Category deleted successfully',
+                'data' => $category->load(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([

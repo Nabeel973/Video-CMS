@@ -85,7 +85,8 @@ class GenreController extends Controller
             $this->genreService->delete($genre);
 
             return response()->json([
-                'message' => 'Genre deleted successfully'
+                'message' => 'Genre deleted successfully',
+                'data' => $genre->load(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([

@@ -85,7 +85,8 @@ class ReleaseController extends Controller
             $this->releaseService->delete($release);
 
             return response()->json([
-                'message' => 'Release deleted successfully'
+                'message' => 'Release deleted successfully',
+                'data' => $release->load(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([

@@ -267,7 +267,14 @@ const deleteItem = async (endpoint, id) => {
     if (result.isConfirmed) {
         try {
             await axios.delete(`/${endpoint}/${id}`);
-            fetchData();
+          // Destroy the current table instance
+          if (dataTable.value) {
+                dataTable.value.destroy();
+                  // Reinitsialize the table
+                initDataTable();
+            }
+            
+          
             
             // Show success message
             Swal.fire({
