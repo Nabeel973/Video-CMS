@@ -36,6 +36,13 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function show(Category $category): JsonResponse
+    {
+        return response()->json([
+            'data' => $category->load(['createdBy:id,name', 'updatedBy:id,name'])
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         try {
@@ -62,7 +69,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'message' => 'Category updated successfully',
-                'data' => $category->fresh()
+                'data' => $category->fresh(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([

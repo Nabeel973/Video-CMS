@@ -140,7 +140,6 @@ const fetchData = async () => {
     try {
         const response = await axios.get(`/${props.endpoint}`);
         
-        // Check if response has data property
         if (!response.data || !response.data.data) {
             throw new Error('Invalid response format');
         }
@@ -213,24 +212,36 @@ const handleSubmit = async () => {
         const url = form.id ? `/${props.endpoint}/${form.id}` : `/${props.endpoint}`;
         const method = form.id ? 'put' : 'post';
         
-        await axios[method](url, form);
-        closeModal();
-        fetchData();
+        const response = await axios[method](url, form);
         
-        // Show success message
-        Swal.fire({
-            title: 'Success!',
-            text: `${props.singularTitle} ${form.id ? 'updated' : 'created'} successfully.`,
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
+        if (response.data && response.data.message) {
+            // Close the modal first
+            closeModal();
+            
+            // Destroy the current table instance
+            if (dataTable.value) {
+                dataTable.value.destroy();
+            }
+            
+            // Reinitialize the table
+            initDataTable();
+            
+            // Show success message
+            Swal.fire({
+                title: 'Success!',
+                text: response.data.message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        }
     } catch (error) {
+        console.log(error);
         if (error.response?.data?.errors) {
             errors.value = error.response.data.errors;
         } else {
             Swal.fire({
                 title: 'Error!',
-                text: `Failed to ${form.id ? 'update' : 'create'} ${props.singularTitle.toLowerCase()}. Please try again.`,
+                text: error.response?.data?.message || `Failed to ${form.id ? 'update' : 'create'} ${props.singularTitle.toLowerCase()}. Please try again.`,
                 icon: 'error',
                 confirmButtonText: 'OK'
             });

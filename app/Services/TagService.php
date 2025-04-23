@@ -16,11 +16,9 @@ class TagService
 
     public function getPaginated(int $perPage = 10): LengthAwarePaginator
     {
-         $tag = Tag::with(['createdBy:id,name', 'updatedBy:id,name'])
+        return Tag::with(['createdBy:id,name', 'updatedBy:id,name'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
-            return $tag;
-       
     }
 
     public function create(array $data): Tag
@@ -50,9 +48,18 @@ class TagService
 
     public function validateData(array $data): array
     {
-        return validator($data, [
-            'name' => 'required|string|max:255|unique:tags,name,' . ($data['id'] ?? ''),
+        $rules = [
+            'name' => 'required|string|max:255',
             'status' => 'required|in:active,inactive',
-        ])->validate();
+        ];
+
+        // If we have an ID, it's an update, so exclude current record from unique check
+        if (isset($data['id'])) {
+            $rules['name'] .= '|unique:tags,name,' . $data['id'];
+        } else {
+            $rules['name'] .= '|unique:tags';
+        }
+
+        return validator($data, $rules)->validate();
     }
 } 

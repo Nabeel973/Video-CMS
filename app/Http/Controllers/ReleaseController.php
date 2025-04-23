@@ -36,6 +36,13 @@ class ReleaseController extends Controller
         ]);
     }
 
+    public function show(Release $release): JsonResponse
+    {
+        return response()->json([
+            'data' => $release->load(['createdBy:id,name', 'updatedBy:id,name'])
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         try {
@@ -62,7 +69,7 @@ class ReleaseController extends Controller
 
             return response()->json([
                 'message' => 'Release updated successfully',
-                'data' => $release->fresh()
+                'data' => $release->fresh(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([

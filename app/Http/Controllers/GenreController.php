@@ -36,6 +36,13 @@ class GenreController extends Controller
         ]);
     }
 
+    public function show(Genre $genre): JsonResponse
+    {
+        return response()->json([
+            'data' => $genre->load(['createdBy:id,name', 'updatedBy:id,name'])
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         try {
@@ -62,7 +69,7 @@ class GenreController extends Controller
 
             return response()->json([
                 'message' => 'Genre updated successfully',
-                'data' => $genre->fresh()
+                'data' => $genre->fresh(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([

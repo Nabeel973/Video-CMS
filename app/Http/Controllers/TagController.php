@@ -36,6 +36,13 @@ class TagController extends Controller
         ]);
     }
 
+    public function show(Tag $tag): JsonResponse
+    {
+        return response()->json([
+            'data' => $tag->load(['createdBy:id,name', 'updatedBy:id,name'])
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         try {
@@ -62,7 +69,7 @@ class TagController extends Controller
 
             return response()->json([
                 'message' => 'Tag updated successfully',
-                'data' => $tag->fresh()
+                'data' => $tag->fresh(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
