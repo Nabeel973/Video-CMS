@@ -16,9 +16,11 @@ class TagService
 
     public function getPaginated(int $perPage = 10): LengthAwarePaginator
     {
-        return Tag::with(['createdBy:id,name', 'updatedBy:id,name'])
+         $tag = Tag::with(['createdBy:id,name', 'updatedBy:id,name'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
+            return $tag;
+       
     }
 
     public function create(array $data): Tag

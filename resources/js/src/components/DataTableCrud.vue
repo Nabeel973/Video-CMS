@@ -138,7 +138,7 @@ const initDataTable = () => {
 // Fetch Data
 const fetchData = async () => {
     try {
-        const response = await axios.get(`/api/${props.endpoint}`);
+        const response = await axios.get(`/${props.endpoint}`);
         
         // Check if response has data property
         if (!response.data || !response.data.data) {
@@ -148,13 +148,23 @@ const fetchData = async () => {
         const formattedData = response.data.data.map(item => [
             item.id,
             item.name,
-            `<span class="badge ${item.status === 'active' ? 'badge-outline-success' : 'badge-outline-danger'}">${item.status}</span>`,
+            `<span class="badge ${item.status === 'active' ? 'badge-outline-success' : 'badge-outline-danger'}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>`,
             item.created_by?.name || 'N/A',
             item.updated_by?.name || 'N/A',
             new Date(item.created_at).toLocaleDateString(),
             `<div class="flex items-center gap-2">
-                <button class="btn btn-sm btn-outline-primary" onclick="editItem('${props.endpoint}', ${item.id})">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${props.endpoint}', ${item.id})">Delete</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="editItem('${props.endpoint}', ${item.id})">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${props.endpoint}', ${item.id})">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
             </div>`
         ]);
 
@@ -200,7 +210,7 @@ const handleSubmit = async () => {
     errors.value = {};
 
     try {
-        const url = form.id ? `/api/${props.endpoint}/${form.id}` : `/api/${props.endpoint}`;
+        const url = form.id ? `/${props.endpoint}/${form.id}` : `/${props.endpoint}`;
         const method = form.id ? 'put' : 'post';
         
         await axios[method](url, form);
@@ -245,7 +255,7 @@ const deleteItem = async (endpoint, id) => {
 
     if (result.isConfirmed) {
         try {
-            await axios.delete(`/api/${endpoint}/${id}`);
+            await axios.delete(`/${endpoint}/${id}`);
             fetchData();
             
             // Show success message
@@ -273,7 +283,7 @@ onMounted(() => {
     
     // Make functions available globally for the inline button handlers
     window.editItem = (endpoint, id) => {
-        axios.get(`/api/${endpoint}/${id}`).then(response => {
+        axios.get(`/${endpoint}/${id}`).then(response => {
             openModal(response.data.data);
         }).catch(error => {
             Swal.fire({

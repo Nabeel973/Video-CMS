@@ -2,7 +2,7 @@ import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 
 // Set base URL for API requests
-axios.defaults.baseURL = '';  // Remove /api prefix since it's already added by Laravel
+axios.defaults.baseURL = '/api';  // Remove /api prefix since it's already added by Laravel
 
 // Add a request interceptor to add the auth token to all requests
 axios.interceptors.request.use(
