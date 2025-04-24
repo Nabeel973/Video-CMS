@@ -55,9 +55,9 @@ class TagService
 
         // If we have an ID, it's an update, so exclude current record from unique check
         if (isset($data['id'])) {
-            $rules['name'] .= '|unique:tags,name,' . $data['id'];
+            $rules['name'] .= '|unique:tags,name,' . $data['id'] . ',id,deleted_at,NULL';
         } else {
-            $rules['name'] .= '|unique:tags';
+            $rules['name'] .= '|unique:tags,name,NULL,id,deleted_at,NULL';
         }
 
         return validator($data, $rules)->validate();

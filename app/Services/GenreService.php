@@ -48,9 +48,18 @@ class GenreService
 
     public function validateData(array $data): array
     {
-        return validator($data, [
-            'name' => 'required|string|max:255|unique:genres,name,' . ($data['id'] ?? ''),
+        $rules = [
+            'name' => 'required|string|max:255',
             'status' => 'required|in:active,inactive',
-        ])->validate();
+        ];
+
+        // If we have an ID, it's an update, so exclude current record from unique check
+        if (isset($data['id'])) {
+            $rules['name'] .= '|unique:genres,name,' . $data['id'] . ',id,deleted_at,NULL';
+        } else {
+            $rules['name'] .= '|unique:genres,name,NULL,id,deleted_at,NULL';
+        }
+
+        return validator($data, $rules)->validate();
     }
 } 

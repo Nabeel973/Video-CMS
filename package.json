@@ -7,8 +7,12 @@
     },
     "dependencies": {
         "@bhplugin/vue3-datatable": "^2.0.2",
+        "@vueuse/core": "^13.1.0",
         "@vueuse/head": "^2.0.0",
         "axios": "^1.8.4",
+        "file-saver": "^2.0.5",
+        "html2canvas": "^1.4.1",
+        "jspdf": "^3.0.1",
         "pinia": "^2.2.2",
         "simple-datatables": "^10.0.0",
         "sweetalert2": "^11.19.1",
@@ -17,7 +21,8 @@
         "vue-i18n": "^9.2.2",
         "vue-router": "^4.1.5",
         "vue3-perfect-scrollbar": "^2.0.0",
-        "vue3-popper": "^1.5.0"
+        "vue3-popper": "^1.5.0",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "@intlify/unplugin-vue-i18n": "^4.0.0",
