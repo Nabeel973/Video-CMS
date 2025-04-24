@@ -48,6 +48,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import(/* webpackChunkName: "admin-tags" */ '../views/admin/genres/index.vue'),
         meta: { layout: 'auth' },
     },
+    {
+        path: '/admin/releases',
+        name: 'admin-releases',
+        component: () => import(/* webpackChunkName: "admin-tags" */ '../views/admin/releases/index.vue'),
+        meta: { layout: 'auth' },
+    },
+    {
+        path: '/admin/categories',
+        name: 'admin-categories',
+        component: () => import(/* webpackChunkName: "admin-tags" */ '../views/admin/categories/index.vue'),
+        meta: { layout: 'auth' },
+    },
 ];
 
 const router = createRouter({
