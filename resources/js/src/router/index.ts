@@ -60,6 +60,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import(/* webpackChunkName: "admin-tags" */ '../views/admin/categories/index.vue'),
         meta: { layout: 'auth' },
     },
+    // Add new route for roles management
+    {
+        path: '/admin/roles',
+        name: 'admin-roles',
+        component: () => import(/* webpackChunkName: "admin-roles" */ '../views/admin/roles/index.vue'),
+        meta: { layout: 'auth' },
+    },
 ];
 
 const router = createRouter({

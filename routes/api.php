@@ -57,4 +57,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/tags/{tag}', [TagController::class, 'show']);
     Route::put('/tags/{tag}', [TagController::class, 'update']);
     Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
+
+
+    Route::get('/roles', [App\Http\Controllers\RoleController::class, 'index']);
+    Route::post('/roles', [App\Http\Controllers\RoleController::class, 'store']);
+    Route::get('/roles/{role}', [App\Http\Controllers\RoleController::class, 'show']);
+    Route::put('/roles/{role}', [App\Http\Controllers\RoleController::class, 'update']);
+    Route::delete('/roles/{role}', [App\Http\Controllers\RoleController::class, 'destroy']);
+    Route::get('/permissions', [App\Http\Controllers\RoleController::class, 'getAllPermissions']);
+    Route::post('/roles/{role}/permissions', [App\Http\Controllers\RoleController::class, 'assignPermissions']);
 });

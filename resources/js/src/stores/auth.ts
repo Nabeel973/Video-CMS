@@ -70,7 +70,7 @@ export const useAuthStore = defineStore('auth', {
         async register(name: string, email: string, password: string, password_confirmation: string) {
             try {
                 this.clearErrors();
-                const response = await axios.post('/api/auth/register', {
+                const response = await axios.post('/auth/register', {
                     name,
                     email,
                     password,
@@ -101,7 +101,7 @@ export const useAuthStore = defineStore('auth', {
 
         async logout() {
             try {
-                await axios.post('/api/auth/logout', {}, {
+                await axios.post('/auth/logout', {}, {
                     headers: {
                         Authorization: `Bearer ${this.token}`,
                     },
@@ -118,7 +118,7 @@ export const useAuthStore = defineStore('auth', {
 
         async fetchUser() {
             try {
-                const response = await axios.get('/api/auth/user', {
+                const response = await axios.get('/auth/user', {
                     headers: {
                         Authorization: `Bearer ${this.token}`,
                     },

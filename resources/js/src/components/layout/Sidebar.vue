@@ -101,6 +101,19 @@
                                     <span class="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{{ $t('users') }}</span>
                                 </div>
                             </button>
+                            <vue-collapsible :isOpen="activeDropdown === 'users'">
+                                <ul class="sub-menu text-gray-500">
+                                    <li>
+                                        <router-link to="/user-management" @click="toggleMobileMenu">{{ $t('user_management') }}</router-link>
+                                    </li>
+                                    <li>
+                                        <router-link to="/admin/roles" @click="toggleMobileMenu">{{ $t('roles') }}</router-link>
+                                    </li>
+                                    <li>
+                                        <router-link to="/admin/permissions" @click="toggleMobileMenu">{{ $t('permissions') }}</router-link>
+                                    </li>
+                                </ul>
+                            </vue-collapsible>
                         </li>
 
                         <!-- Pages Section -->
