@@ -229,4 +229,17 @@ class RoleController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get permissions for a specific role
+     */
+    public function getRolePermissions(Role $role)
+    {
+        $permissions = $role->permissions;
+        
+        return response()->json([
+            'data' => $permissions,
+            'message' => 'Role permissions retrieved successfully'
+        ]);
+    }
 }

@@ -3,14 +3,29 @@ import { useAuthStore } from '@/stores/auth';
 import { useAppStore } from '@/stores/index';
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
+import RolePermissions from "../views/admin/roles/RolePermissions.vue";
 import HomeView from '../views/index.vue';
+import RolesList from "../views/admin/roles/index.vue";
 import UserManagementView from '../views/user-index.vue';
 
 const routes: RouteRecordRaw[] = [
     // dashboard
     { path: '/', name: 'home', component: HomeView },
      // authentication
-     {
+
+        {
+        path: '/admin/roles',
+        name: 'roles',
+        component: RolesList,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/admin/roles/:id/permissions',
+        name: 'role-permissions',
+        component: RolePermissions,
+        meta: { requiresAuth: true }
+    },
+    {
         path: '/auth/boxed-signin',
         name: 'boxed-signin',
         component: () => import(/* webpackChunkName: "auth-boxed-signin" */ '../views/auth/boxed-signin.vue'),
@@ -67,6 +82,15 @@ const routes: RouteRecordRaw[] = [
         component: () => import(/* webpackChunkName: "admin-roles" */ '../views/admin/roles/index.vue'),
         meta: { layout: 'auth' },
     },
+    {
+        path: '/roles/:id/permissions',
+        name: 'role-permissions',
+        component: () => import('../views/RolePermissions.vue'),
+        meta: {
+            requiresAuth: true,
+            title: 'Role Permissions'
+        }
+    }
 ];
 
 const router = createRouter({

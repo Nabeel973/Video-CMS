@@ -112,6 +112,17 @@
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
+                        <!-- Add Permissions button only for roles screen -->
+                        <router-link 
+                            v-if="props.endpoint === 'roles'" 
+                            :to="`/roles/${typeof data.value === 'object' ? data.value.id : data.value}/permissions`" 
+                            class="btn btn-sm btn-outline-info"
+                        >
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none">
+                                <path d="M12 15v3m-3-3h6M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <path d="M9 10a3 3 0 1 0 6 0 3 3 0 0 0-6 0"></path>
+                            </svg>
+                        </router-link>
                         <button class="btn btn-sm btn-outline-danger" @click="deleteItem(data.value)">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none">
                                 <path d="M3 6h18"></path>
