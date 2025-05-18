@@ -468,10 +468,10 @@
                                             </div>
                                             <div class="ltr:pl-4 rtl:pr-4 truncate">
                                                 <h4 class="text-base">
-                                                    John Doe<span class="text-xs bg-success-light rounded text-success px-1 ltr:ml-2 rtl:ml-2">Pro</span>
+                                                     {{ authStore.user?.name || 'John Doe' }}<span class="text-xs bg-success-light rounded text-success px-1 ltr:ml-2 rtl:ml-2"> {{ authStore.user?.role}}</span>
                                                 </h4>
                                                 <a class="text-black/60 hover:text-primary dark:text-dark-light/60 dark:hover:text-white" href="javascript:;"
-                                                    >johndoe@gmail.com</a
+                                                    >{{ authStore.user?.email || 'johndoe@gmail.com' }}</a
                                                 >
                                             </div>
                                         </div>
@@ -1290,13 +1290,16 @@
 </template>
 
 <script lang="ts" setup>
-    import { ref, onMounted, computed, reactive, watch } from 'vue';
-    import { useI18n } from 'vue-i18n';
+    import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
     import appSetting from '@/app-setting';
 
-    import { useRoute } from 'vue-router';
-    import { useAppStore } from '@/stores/index';
+    import { useAuthStore } from '@/stores/auth';
+import { useAppStore } from '@/stores/index';
+    const authStore = useAuthStore();
+
+import { useRoute } from 'vue-router';
     const store = useAppStore();
     const route = useRoute();
     const search = ref(false);

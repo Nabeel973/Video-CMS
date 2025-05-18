@@ -80,7 +80,7 @@ class PermissionSeeder extends Seeder
                 ]);
 
                 // Assign permissions to roles
-                $superAdminRole->givePermissionTo($permission); // Super Admin gets all permissions
+                // $superAdminRole->givePermissionTo($permission); // Super Admin gets all permissions
 
                 // Manager gets most permissions except some sensitive ones
                 if (!in_array($name, ['role.delete', 'permission.delete', 'user.delete'])) {

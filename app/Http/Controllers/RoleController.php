@@ -15,10 +15,10 @@ class RoleController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:view roles', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create roles', ['only' => ['store']]);
-        $this->middleware('permission:edit roles', ['only' => ['update']]);
-        $this->middleware('permission:delete roles', ['only' => ['destroy']]);
+        $this->middleware('permission:role.view,api', ['only' => ['index', 'show']]);
+        $this->middleware('permission:role.create,api', ['only' => ['store']]);
+        $this->middleware('permission:role.edit,api', ['only' => ['update']]);
+        $this->middleware('permission:role.delete,api', ['only' => ['destroy']]);
     }
 
     /**
@@ -27,7 +27,7 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::with(['permissions'])->get();
-        
+        dd($roles);
         return response()->json([
             'data' => $roles,
             'message' => 'Roles retrieved successfully'

@@ -20,47 +20,12 @@ class UsersSeeder extends Seeder
         $managerRole = Role::firstOrCreate(['name' => 'Manager', 'guard_name' => 'api']);
         $userRole = Role::firstOrCreate(['name' => 'User', 'guard_name' => 'api']);
         
-        // Create permissions
-        $permissions = [
-            // Video permissions
-            'view videos',
-            'create videos',
-            'edit videos',
-            'delete videos',
-            // User management permissions
-            'view users',
-            'create users',
-            'edit users',
-            'delete users',
-            // Category permissions
-            'view categories',
-            'create categories',
-            'edit categories',
-            'delete categories',
-            // Settings permissions
-            'manage settings',
-        ];
         
-        // Create permissions if they don't exist
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'api']);
-        }
-        
-        // Assign permissions to Manager role
-        $managerRole->givePermissionTo([
-            'view videos',
-            'create videos',
-            'edit videos',
-            'view users',
-            'view categories',
-            'create categories',
-            'edit categories',
-        ]);
-        
-        // Assign permissions to User role
-        $userRole->givePermissionTo([
-            'view videos',
-        ]);
+     
+        // // Assign permissions to User role
+        // $userRole->givePermissionTo([
+        //     'view videos',
+        // ]);
         
         // No need to assign permissions to Super Admin role
         // The isSuperAdmin() method in User model will handle this

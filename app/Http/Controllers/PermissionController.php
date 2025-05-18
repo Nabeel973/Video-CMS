@@ -13,12 +13,12 @@ class PermissionController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:view permissions', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create permissions', ['only' => ['store']]);
-        $this->middleware('permission:edit permissions', ['only' => ['update']]);
-        $this->middleware('permission:delete permissions', ['only' => ['destroy']]);
+        $this->middleware('permission:permission.view,api', ['only' => ['index', 'show']]);
+        $this->middleware('permission:permission.create,api', ['only' => ['store']]);
+        $this->middleware('permission:permission.edit,api', ['only' => ['update']]);
+        $this->middleware('permission:permission.delete,api', ['only' => ['destroy']]);
     }
-
+ 
     /**
      * Display a listing of the permissions.
      */

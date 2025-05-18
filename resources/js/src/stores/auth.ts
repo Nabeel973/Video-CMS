@@ -5,6 +5,8 @@ interface User {
     id: number;
     name: string;
     email: string;
+    role: string;
+    permissions: string[];
 }
 
 interface AuthState {
@@ -28,6 +30,14 @@ export const useAuthStore = defineStore('auth', {
         isLoggedIn: (state) => state.isAuthenticated,
         getErrors: (state) => state.errors,
         hasErrors: (state) => Object.keys(state.errors).length > 0,
+        getUserRole: (state) => state.user?.role || null,
+        getUserPermissions: (state) => state.user?.permissions || [],
+        hasPermission: (state) => (permission: string) => {
+            return state.user?.permissions?.includes(permission) || false;
+        },
+        hasRole: (state) => (role: string) => {
+            return state.user?.role === role;
+        },
     },
 
     actions: {
@@ -40,7 +50,17 @@ export const useAuthStore = defineStore('auth', {
                 });
 
                 const { user, token } = response.data;
-                this.setAuth(user, token);
+                
+                // Ensure user object has the required properties
+                const userData: User = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role || 'user', // Default to 'user' if role is not provided
+                    permissions: user.permissions || [], // Default to empty array if permissions are not provided
+                };
+                
+                this.setAuth(userData, token);
                 return { success: true };
             } catch (error: any) {
                 if (error.response?.status === 422) {
@@ -78,7 +98,17 @@ export const useAuthStore = defineStore('auth', {
                 });
 
                 const { user, token } = response.data;
-                this.setAuth(user, token);
+                
+                // Ensure user object has the required properties
+                const userData: User = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role || 'user', // Default to 'user' if role is not provided
+                    permissions: user.permissions || [], // Default to empty array if permissions are not provided
+                };
+                
+                this.setAuth(userData, token);
                 return { success: true };
             } catch (error: any) {
                 if (error.response?.status === 422) {
@@ -123,7 +153,17 @@ export const useAuthStore = defineStore('auth', {
                         Authorization: `Bearer ${this.token}`,
                     },
                 });
-                this.user = response.data;
+                
+                // Ensure user object has the required properties
+                const userData: User = {
+                    id: response.data.id,
+                    name: response.data.name,
+                    email: response.data.email,
+                    role: response.data.role || 'user', // Default to 'user' if role is not provided
+                    permissions: response.data.permissions || [], // Default to empty array if permissions are not provided
+                };
+                
+                this.user = userData;
                 this.isAuthenticated = true;
             } catch (error) {
                 this.clearAuth();
@@ -149,5 +189,15 @@ export const useAuthStore = defineStore('auth', {
         clearErrors() {
             this.errors = {};
         },
+
+        // Check if user has specific permission
+        can(permission: string): boolean {
+            return this.user?.permissions?.includes(permission) || false;
+        },
+
+        // Check if user has specific role
+        is(role: string): boolean {
+            return this.user?.role === role;
+        },
     },
-}); 
+});
