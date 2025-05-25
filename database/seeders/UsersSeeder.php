@@ -35,7 +35,7 @@ class UsersSeeder extends Seeder
             'name' => 'Super Admin User',
             'email' => 'super_admin@example.com',
             'password' => Hash::make('password'),
-            'role_id' => 1,
+            // 'role_id' => 1,
         ]);
         $superAdmin->assignRole($superAdminRole);
         
@@ -44,7 +44,7 @@ class UsersSeeder extends Seeder
             'name' => 'Manager',
             'email' => 'manager@example.com',
             'password' => Hash::make('password'),
-            'role_id' => 2,
+            // 'role_id' => 2,
         ]);
         $manager->assignRole($managerRole);
         
@@ -53,7 +53,7 @@ class UsersSeeder extends Seeder
             'name' => 'User One',
             'email' => 'user1@example.com',
             'password' => Hash::make('password'),
-            'role_id' => 3,
+            // 'role_id' => 3,
         ]);
         $user1->assignRole($userRole);
         
@@ -61,7 +61,7 @@ class UsersSeeder extends Seeder
             'name' => 'User Two',
             'email' => 'user2@example.com',
             'password' => Hash::make('password'),
-            'role_id' => 3,
+            // 'role_id' => 3,
         ]);
         $user2->assignRole($userRole);
         
@@ -69,7 +69,7 @@ class UsersSeeder extends Seeder
             'name' => 'User Three',
             'email' => 'user3@example.com',
             'password' => Hash::make('password'),
-            'role_id' => 3,
+            // 'role_id' => 3,
         ]);
         $user3->assignRole($userRole);
         
@@ -77,7 +77,7 @@ class UsersSeeder extends Seeder
             'name' => 'User Four',
             'email' => 'user4@example.com',
             'password' => Hash::make('password'),
-            'role_id' => 3,
+            // 'role_id' => 3,
         ]);
         $user4->assignRole($userRole);
     }

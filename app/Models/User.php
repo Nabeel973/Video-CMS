@@ -53,4 +53,9 @@ class User extends Authenticatable
         return $this->hasRole('Super Admin');
     }
 
+    public function isManager()
+    {
+        return $this->hasRole('Manager');
+    }
+
 }

@@ -14,11 +14,11 @@ class RoleController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:role.view,api', ['only' => ['index', 'show']]);
-        $this->middleware('permission:role.create,api', ['only' => ['store']]);
-        $this->middleware('permission:role.edit,api', ['only' => ['update']]);
-        $this->middleware('permission:role.delete,api', ['only' => ['destroy']]);
+        $this->middleware('auth:api');
+        $this->middleware('permission:role.view', ['only' => ['index', 'show']]);
+        $this->middleware('permission:role.create', ['only' => ['store']]);
+        $this->middleware('permission:role.edit', ['only' => ['update']]);
+        $this->middleware('permission:role.delete', ['only' => ['destroy']]);
     }
 
     /**
@@ -27,7 +27,6 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::with(['permissions'])->get();
-        dd($roles);
         return response()->json([
             'data' => $roles,
             'message' => 'Roles retrieved successfully'
@@ -158,14 +157,14 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         // Check if user is super admin
-        if (!Auth::user()->isSuperAdmin()) {
+        if (!Auth::user()->isSuperAdmin() || !Auth::user()->isManager()) {
             return response()->json([
-                'error' => 'Only Super Admin can delete roles'
+                'error' => 'Only Super Admin or Manager can delete roles'
             ], 403);
         }
 
         // Prevent deletion of Super Admin role
-        if ($role->name === 'Super Admin') {
+        if (in_array($role->name,['Super Admin'])) {
             return response()->json([
                 'error' => 'Super Admin role cannot be deleted'
             ], 403);
@@ -190,10 +189,21 @@ class RoleController extends Controller
      */
     public function getAllPermissions()
     {
-        $permissions = Permission::all()->groupBy('group');
+        $user = Auth::user();
+        
+        // Get permissions based on user role
+        if ($user->isSuperAdmin() || $user->isManager()) {
+            // Super Admin can see all permissions
+            $permissions = Permission::all();
+        }else {
+            // Other roles get limited permissions based on their current permissions
+            $permissions = $user->getAllPermissions();
+        }
+        
+        $groupedPermissions = $permissions->groupBy('group');
         
         return response()->json([
-            'data' => $permissions,
+            'data' => $groupedPermissions,
             'message' => 'Permissions retrieved successfully'
         ]);
     }
@@ -203,10 +213,12 @@ class RoleController extends Controller
      */
     public function assignPermissions(Request $request, Role $role)
     {
-        // Check if user is super admin
-        if (!Auth::user()->isSuperAdmin()) {
+        $user = Auth::user();
+        
+        // Check permissions based on user role
+        if (!$user->isSuperAdmin() && !$user->isManager()) {
             return response()->json([
-                'error' => 'Only Super Admin can assign permissions'
+                'error' => 'Insufficient permissions to assign permissions'
             ], 403);
         }
 
@@ -216,6 +228,7 @@ class RoleController extends Controller
         ]);
 
         try {
+
             $permissions = Permission::whereIn('id', $request->permissions)->get();
             $role->syncPermissions($permissions);
             
