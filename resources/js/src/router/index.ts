@@ -3,10 +3,10 @@ import { useAuthStore } from '@/stores/auth';
 import { useAppStore } from '@/stores/index';
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
-import RolePermissions from "../views/admin/roles/RolePermissions.vue";
-import HomeView from '../views/index.vue';
 import RolesList from "../views/admin/roles/index.vue";
-import UserManagementView from '../views/user-index.vue';
+import RolePermissions from "../views/admin/roles/RolePermissions.vue";
+import UserManagementView from '../views/admin/users/index.vue';
+import HomeView from '../views/index.vue';
 
 const routes: RouteRecordRaw[] = [
     // dashboard

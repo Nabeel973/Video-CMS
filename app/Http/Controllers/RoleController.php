@@ -26,7 +26,24 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::with(['permissions'])->get();
+        $user = Auth::user();
+        $query = Role::with(['permissions']);
+        
+        // If user is Manager, exclude Super Admin role
+        if ($user->isManager()) {
+            $query->where('id', '!=', 1);
+        }
+        
+        $roles = $query->get();
+        
+        // Add user context to each role
+        $roles = $roles->map(function ($role) use ($user) {
+            $role->can_edit = $this->canEditRole($user, $role);
+            $role->can_delete = $this->canDeleteRole($user, $role);
+            $role->can_manage_permissions = $this->canManagePermissions($user, $role);
+            return $role;
+        });
+        
         return response()->json([
             'data' => $roles,
             'message' => 'Roles retrieved successfully'
@@ -39,11 +56,8 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         // Check if user is super admin
-        if (!Auth::user()->isSuperAdmin()) {
-            return response()->json([
-                'error' => 'Only Super Admin can create roles'
-            ], 403);
-        }
+        $user = Auth::user();
+      
 
         $request->validate([
             'name' => 'required|string|max:255|unique:roles,name',
@@ -89,6 +103,15 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
+        $user = Auth::user();
+        
+        // Manager cannot view Super Admin role
+        if ($user->isManager() && !$user->isSuperAdmin() && $role->name === 'Super Admin') {
+            return response()->json([
+                'error' => 'Access denied'
+            ], 403);
+        }
+        
         $role->load('permissions');
         
         return response()->json([
@@ -102,8 +125,17 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
+        $user = Auth::user();
+        
+        // Check if user can edit this role
+        if (!$this->canEditRole($user, $role)) {
+            return response()->json([
+                'error' => 'You cannot edit this role'
+            ], 403);
+        }
+        
         // Check if user is super admin for status changes
-        if ($request->has('status') && $request->status != $role->status && !Auth::user()->isSuperAdmin()) {
+        if ($request->has('status') && $request->status != $role->status && !$user->isSuperAdmin()) {
             return response()->json([
                 'error' => 'Only Super Admin can change role status'
             ], 403);
@@ -156,17 +188,12 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        // Check if user is super admin
-        if (!Auth::user()->isSuperAdmin() || !Auth::user()->isManager()) {
+        $user = Auth::user();
+        
+        // Check if user can delete this role
+        if (!$this->canDeleteRole($user, $role)) {
             return response()->json([
-                'error' => 'Only Super Admin or Manager can delete roles'
-            ], 403);
-        }
-
-        // Prevent deletion of Super Admin role
-        if (in_array($role->name,['Super Admin'])) {
-            return response()->json([
-                'error' => 'Super Admin role cannot be deleted'
+                'error' => 'You cannot delete this role'
             ], 403);
         }
 
@@ -215,10 +242,10 @@ class RoleController extends Controller
     {
         $user = Auth::user();
         
-        // Check permissions based on user role
-        if (!$user->isSuperAdmin() && !$user->isManager()) {
+        // Check if user can manage permissions for this role
+        if (!$this->canManagePermissions($user, $role)) {
             return response()->json([
-                'error' => 'Insufficient permissions to assign permissions'
+                'error' => 'You cannot manage permissions for this role'
             ], 403);
         }
 
@@ -228,9 +255,22 @@ class RoleController extends Controller
         ]);
 
         try {
-
-            $permissions = Permission::whereIn('id', $request->permissions)->get();
-            $role->syncPermissions($permissions);
+            $requestedPermissions = Permission::whereIn('id', $request->permissions)->get();
+            
+            // If user is Manager, filter out delete permissions
+            if ($user->isManager()) {
+                $deletePermissions = $requestedPermissions->filter(function ($permission) {
+                    return str_contains($permission->name, '.delete');
+                });
+                
+                if ($deletePermissions->isNotEmpty()) {
+                    return response()->json([
+                        'error' => 'VistroVideo Manager cannot assign delete permissions'
+                    ], 403);
+                }
+            }
+            
+            $role->syncPermissions($requestedPermissions);
             
             return response()->json([
                 'message' => 'Permissions assigned successfully'
@@ -248,11 +288,74 @@ class RoleController extends Controller
      */
     public function getRolePermissions(Role $role)
     {
+        $user = Auth::user();
+        
+        // Check if user can view this role's permissions
+        if (!$this->canManagePermissions($user, $role)) {
+            return response()->json([
+                'error' => 'Access denied'
+            ], 403);
+        }
+        
         $permissions = $role->permissions;
         
         return response()->json([
             'data' => $permissions,
             'message' => 'Role permissions retrieved successfully'
         ]);
+    }
+
+    /**
+     * Check if user can edit a role
+     */
+    private function canEditRole($user, $role)
+    {
+        // Super Admin can edit all roles except their own
+        if ($user->isSuperAdmin()) {
+            return !$user->hasRole($role->name);
+        }
+        
+        // Manager can edit roles except Super Admin and their own role
+        if ($user->isManager()) {
+            return $role->name !== 'Super Admin' && !$user->hasRole($role->name);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if user can delete a role
+     */
+    private function canDeleteRole($user, $role)
+    {
+        // Super Admin can delete all roles except Super Admin role and their own
+        if ($user->isSuperAdmin()) {
+            return $role->name !== 'Super Admin' && !$user->hasRole($role->name);
+        }
+        
+        // Manager can delete roles except Super Admin and their own role
+        if ($user->isManager()) {
+            return $role->name !== 'Super Admin' && !$user->hasRole($role->name);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if user can manage permissions for a role
+     */
+    private function canManagePermissions($user, $role)
+    {
+        // Super Admin can manage permissions for all roles except their own
+        if ($user->isSuperAdmin()) {
+            return !$user->hasRole($role->name);
+        }
+        
+        // Manager can manage permissions for roles except Super Admin and their own role
+        if ($user->isManager()) {
+            return $role->name !== 'Super Admin' && !$user->hasRole($role->name);
+        }
+        
+        return false;
     }
 }

@@ -30,6 +30,16 @@ class Role extends SpatieRole
         return User::find($this->updated_by_id);
     }
 
+    //  public function createdBy()
+    // {
+    //     return $this->belongsTo(User::class, 'created_by_id');
+    // }
+
+    // public function updatedBy()
+    // {
+    //     return $this->belongsTo(User::class, 'updated_by_id');
+    // }
+
     // public function permissions()
     // {
     //     return $this->belongsToMany(Permission::class, 'role_has_permissions');

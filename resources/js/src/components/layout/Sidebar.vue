@@ -104,10 +104,10 @@
                             <vue-collapsible :isOpen="activeDropdown === 'users'">
                                 <ul class="sub-menu text-gray-500">
                                     <li v-if="hasAnyPermission(['user.view', 'user.create', 'user.edit', 'user.delete'])">
-                                        <router-link to="/user-management" @click="toggleMobileMenu">{{ $t('user_management') }}</router-link>
+                                        <router-link to="/user-management" @click="toggleMobileMenu">User Management</router-link>
                                     </li>
                                     <li v-if="hasAnyPermission(['role.view', 'role.create', 'role.edit', 'role.delete'])">
-                                        <router-link to="/admin/roles" @click="toggleMobileMenu">{{ $t('roles') }}</router-link>
+                                        <router-link to="/admin/roles" @click="toggleMobileMenu">Roles</router-link>
                                     </li>
                                     <!-- <li v-if="hasAnyPermission(['permission.view'])">
                                         <router-link to="/admin/permissions" @click="toggleMobileMenu">{{ $t('permissions') }}</router-link>
@@ -163,23 +163,23 @@
                             <vue-collapsible :isOpen="activeDropdown === 'pages'">
                                 <ul class="sub-menu text-gray-500">
                                     <li v-if="hasAnyPermission(['tag.view', 'tag.create', 'tag.edit', 'tag.delete'])">
-                                        <router-link to="/admin/tags" @click="toggleMobileMenu">{{ $t('tags') }}</router-link>
+                                        <router-link to="/admin/tags" @click="toggleMobileMenu">Tags</router-link>
                                     </li>
                                     <li v-if="hasAnyPermission(['genre.view', 'genre.create', 'genre.edit', 'genre.delete'])">
-                                        <router-link to="/admin/genres" @click="toggleMobileMenu">{{ $t('genres') }}</router-link>
+                                        <router-link to="/admin/genres" @click="toggleMobileMenu">Genres</router-link>
                                     </li>
                                     <li v-if="hasAnyPermission(['release.view', 'release.create', 'release.edit', 'release.delete'])">
-                                        <router-link to="/admin/releases" @click="toggleMobileMenu">{{ $t('releases') }}</router-link>
+                                        <router-link to="/admin/releases" @click="toggleMobileMenu">Releases</router-link>
                                     </li>
                                     <li v-if="hasAnyPermission(['category.view', 'category.create', 'category.edit', 'category.delete'])">
-                                        <router-link to="/admin/categories" @click="toggleMobileMenu">{{ $t('categories') }}</router-link>
+                                        <router-link to="/admin/categories" @click="toggleMobileMenu">Category</router-link>
                                     </li>
                                 </ul>
                             </vue-collapsible>
                         </li>
 
                         <!-- Content Section - Only visible with appropriate permissions -->
-                        <li v-if="hasAnyPermission(['content.view', 'content.create', 'content.edit', 'content.delete'])" class="menu nav-item">
+                        <!-- <li v-if="hasAnyPermission(['content.view', 'content.create', 'content.edit', 'content.delete'])" class="menu nav-item">
                             <button
                                 type="button"
                                 class="nav-link group w-full"
@@ -215,7 +215,7 @@
                                     </li>
                                 </ul>
                             </vue-collapsible>
-                        </li>
+                        </li> -->
                     </ul>
                 </perfect-scrollbar>
             </div>

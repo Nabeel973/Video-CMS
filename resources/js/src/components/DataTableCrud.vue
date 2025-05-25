@@ -12,7 +12,7 @@
                         </svg>
                         Add New
                     </span>
-                </button>
+              </button>
                 <div class="dropdown">
                     <Popper :placement="store.rtlClass === 'rtl' ? 'bottom-end' : 'bottom-start'" offsetDistance="0" class="align-middle">
                         <button
@@ -101,20 +101,38 @@
                         {{ data.value.status.toUpperCase() }}
                     </span>
                 </template>
+                
+                <!-- Email template for users -->
+                <template #email="data" v-if="props.endpoint === 'users'">
+                    <span class="text-sm">{{ data.value.email }}</span>
+                </template>
+                
+                <!-- Roles template for users -->
+                <template #roles="data" v-if="props.endpoint === 'users'">
+                    <span class="text-sm">{{ data.value.roles || 'No Role' }}</span>
+                </template>
+                
                 <template #created_at="data">
                     {{ formatDate(data.value.created_at) }}
                 </template>
+                
                 <template #actions="data">
                     <div class="flex items-center gap-2">
-                        <button class="btn btn-sm btn-outline-primary" @click="editItem(data.value)">
+                        <!-- Edit Button - Hide for user's own role -->
+                        <button 
+                            v-if="canEditRole(data.value)"
+                            class="btn btn-sm btn-outline-primary" 
+                            @click="editItem(data.value)"
+                        >
                             <svg class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-1 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
-                        <!-- Add Permissions button only for roles screen -->
+                        
+                        <!-- Permissions Button - Hide for user's own role and only show for roles screen -->
                         <router-link 
-                            v-if="props.endpoint === 'roles'" 
+                            v-if="props.endpoint === 'roles' && canManagePermissions(data.value)" 
                             :to="`/roles/${typeof data.value === 'object' ? data.value.id : data.value}/permissions`" 
                             class="btn btn-sm btn-outline-info"
                         >
@@ -123,7 +141,13 @@
                                 <path d="M9 10a3 3 0 1 0 6 0 3 3 0 0 0-6 0"></path>
                             </svg>
                         </router-link>
-                        <button class="btn btn-sm btn-outline-danger" @click="deleteItem(data.value)">
+                        
+                        <!-- Delete Button - Hide for user's own role -->
+                        <button 
+                            v-if="canDeleteRole(data.value)"
+                            class="btn btn-sm btn-outline-danger" 
+                            @click="deleteItem(data.value)"
+                        >
                             <svg class="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none">
                                 <path d="M3 6h18"></path>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -134,48 +158,19 @@
             </vue3-datatable>
         </div>
 
-        <!-- Modal -->
-        <div class="fixed inset-0 bg-black/60 z-[999] hidden" :class="modal && '!block'">
-            <div class="flex items-center justify-center min-h-screen px-4" @click.self="closeModal">
-                <div class="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-lg">
-                    <div class="flex bg-[#fbfbfb] dark:bg-[#121c2c] items-center justify-between px-5 py-3">
-                        <h5 class="font-bold text-lg">{{ isEdit ? `Edit ${singularTitle}` : `Add ${singularTitle}` }}</h5>
-                        <button type="button" class="hover:opacity-80" @click="closeModal">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="p-5">
-                        <form @submit.prevent="handleSubmit">
-                            <div class="mb-5">
-                                <label for="name">Name</label>
-                                <input id="name" type="text" v-model="form.name" class="form-input" :placeholder="`Enter ${singularTitle.toLowerCase()} name`" :class="{'border-red-500': errors.name}" />
-                                <span class="text-red-500 text-sm" v-if="errors.name">{{ errors.name[0] }}</span>
-                            </div>
-
-                            <div class="mb-5">
-                                <label for="status">Status</label>
-                                <select id="status" v-model="form.status" class="form-select" :class="{'border-red-500': errors.status}">
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                                <span class="text-red-500 text-sm" v-if="errors.status">{{ errors.status[0] }}</span>
-                            </div>
-
-                            <div class="flex justify-end items-center mt-8">
-                                <button type="button" class="btn btn-outline-danger ltr:mr-3 rtl:ml-3" @click="closeModal">Cancel</button>
-                                <button type="submit" class="btn btn-primary" :disabled="loading">
-                                    {{ loading ? 'Saving...' : 'Save' }}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Dynamic Modal -->
+        <DynamicModal
+            :isOpen="modal"
+            :isEdit="isEdit"
+            :singularTitle="singularTitle"
+            :formData="form"
+            :errors="errors"
+            :loading="loading"
+            :isOwnRole="isOwnRole"
+            :endpoint="endpoint"
+            @close="closeModal"
+            @submit="handleSubmit"
+        />
     </div>
 </template>
 
@@ -186,8 +181,9 @@ import axios from 'axios';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import * as XLSX from 'xlsx';
+import DynamicModal from './DynamicModal.vue';
 
 const store = useAppStore();
 
@@ -218,22 +214,102 @@ const errors = ref({});
 const search = ref('');
 const rows = ref([]);
 const totalRows = ref(0);
+const currentUser = ref({});
 
-const columns = ref([
-    { field: 'id', title: 'ID', isUnique: true, hide: false },
-    { field: 'name', title: 'Name', hide: false },
-    { field: 'status', title: 'Status', hide: false },
-    { field: 'created_by', title: 'Created By', hide: false },
-    { field: 'updated_by', title: 'Updated By', hide: false },
-    { field: 'created_at', title: 'Created At', hide: false },
-    { field: 'actions', title: 'Actions', sortable: false, hide: false }
-]);
+// Dynamic columns based on endpoint
+const columns = ref([]);
+
+// Set columns based on endpoint
+const setColumns = () => {
+    if (props.endpoint === 'users'){
+        columns.value = [
+            { field: 'id', title: 'ID', isUnique: true, hide: false },
+            { field: 'name', title: 'Name', hide: false },
+            { field: 'email', title: 'Email', hide: false },
+            { field: 'roles', title: 'Role', hide: false },
+            { field: 'status', title: 'Status', hide: false },
+            { field: 'created_at', title: 'Created At', hide: false },
+            { field: 'actions', title: 'Actions', sortable: false, hide: false },
+        ];
+    } else {
+        columns.value = [
+            { field: 'id', title: 'ID', isUnique: true, hide: false },
+            { field: 'name', title: 'Name', hide: false },
+            { field: 'status', title: 'Status', hide: false },
+            { field: 'created_by', title: 'Created By', hide: false },
+            { field: 'updated_by', title: 'Updated By', hide: false },
+            { field: 'created_at', title: 'Created At', hide: false },
+            { field: 'actions', title: 'Actions', sortable: false, hide: false }
+        ];
+    }
+};
 
 const form = reactive({
     id: null,
     name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    role_id: '',
     status: 'active'
 });
+
+// Computed properties for role checking
+const isOwnRole = computed(() => {
+    if (props.endpoint !== 'roles' || !currentUser.value.roles || !form.name) {
+        return false;
+    }
+    
+    return currentUser.value.roles.some(role => role.name === form.name);
+});
+
+const canEditRole = (roleData) => {
+    if (props.endpoint !== 'roles') return true;
+    
+    const roleName = typeof roleData === 'object' ? roleData.name : 
+                    rows.value.find(row => row.id === roleData)?.name;
+    
+    if (!currentUser.value.roles || !roleName) return true;
+    
+    // Users cannot edit their own role
+    return !currentUser.value.roles.some(role => role.name === roleName);
+};
+
+const canDeleteRole = (roleData) => {
+    if (props.endpoint !== 'roles') return true;
+    
+    const roleName = typeof roleData === 'object' ? roleData.name : 
+                    rows.value.find(row => row.id === roleData)?.name;
+    
+    if (!currentUser.value.roles || !roleName) return true;
+    
+    // Users cannot delete their own role
+    return !currentUser.value.roles.some(role => role.name === roleName);
+};
+
+const canManagePermissions = (roleData) => {
+    if (props.endpoint !== 'roles') return false;
+    
+    const roleName = typeof roleData === 'object' ? roleData.name : 
+                    rows.value.find(row => row.id === roleData)?.name;
+    
+    if (!currentUser.value.roles || !roleName) return true;
+    
+    // Users cannot manage permissions for their own role
+    return !currentUser.value.roles.some(role => role.name === roleName);
+};
+
+// Fetch current user data
+const fetchCurrentUser = async () => {
+    try {
+        const response = await axios.get('/auth/user');
+        if (response.data) {
+            currentUser.value = response.data;
+        }
+    } catch (error) {
+        console.error('Error fetching current user:', error);
+    }
+};
 
 // Fetch Data
 const fetchData = async () => {
@@ -244,15 +320,31 @@ const fetchData = async () => {
             throw new Error('Invalid response format');
         }
 
-        rows.value = response.data.data.map(item => ({
-            id: item.id,
-            name: item.name,
-            status: item.status || 'inactive',
-            created_by: item.created_by?.name || 'N/A',
-            updated_by: item.updated_by?.name || 'N/A',
-            created_at: item.created_at,
-            actions: item.id
-        }));
+        if (props.endpoint === 'users') {
+            rows.value = response.data.data.map(item => ({
+                id: item.id,
+                name: item.name,
+                email: item.email,
+                roles: item.roles,
+                role_ids: item.role_ids,
+                status: item.status || 'inactive',
+                created_at: item.created_at,
+                actions: item.id,
+                can_edit: item.can_edit,
+                can_delete: item.can_delete
+            }));
+        } else {
+            rows.value = response.data.data.map(item => ({
+                id: item.id,
+                name: item.name,
+                status: item.status || 'inactive',
+                created_by: item.created_by?.name || 'N/A',
+                updated_by: item.updated_by?.name || 'N/A',
+                created_at: item.created_at,
+                actions: item.id
+            }));
+        }
+        
         totalRows.value = rows.value.length;
     } catch (error) {
         console.error(`Error fetching ${props.title.toLowerCase()}:`, error);
@@ -267,26 +359,52 @@ const fetchData = async () => {
 
 // Modal Handlers
 const openModal = (itemData = null) => {
+    // Reset isEdit first
+    isEdit.value = false;
+    
     if (itemData) {
         isEdit.value = true;
         form.id = itemData.id;
         form.name = itemData.name;
         form.status = itemData.status;
+        
+        if (props.endpoint === 'users') {
+            form.email = itemData.email;
+            form.role_id = itemData.role_ids ? itemData.role_ids[0] : '';
+            form.password = '';
+            form.password_confirmation = '';
+        }
     } else {
+        // Explicitly set isEdit to false for new entries
         isEdit.value = false;
         form.id = null;
         form.name = '';
         form.status = 'active';
+        
+        if (props.endpoint === 'users') {
+            form.email = '';
+            form.password = '';
+            form.password_confirmation = '';
+            form.role_id = '';
+        }
     }
     modal.value = true;
 };
 
 const closeModal = () => {
     modal.value = false;
+    isEdit.value = false;
     errors.value = {};
     form.id = null;
     form.name = '';
     form.status = 'active';
+    
+    if (props.endpoint === 'users') {
+        form.email = '';
+        form.password = '';
+        form.password_confirmation = '';
+        form.role_id = '';
+    }
 };
 
 // Form Submission
@@ -318,8 +436,16 @@ const handleSubmit = async () => {
         } else if (error.response?.data?.error) {
             // Handle single error message
             errors.value = {
-                name: [error.response.data.error]
+                general: [error.response.data.error]
             };
+            
+            // Show error in SweetAlert for better visibility
+            Swal.fire({
+                title: 'Error!',
+                text: error.response.data.error,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         } else {
             // Handle other errors
             Swal.fire({
@@ -537,6 +663,8 @@ const exportToPDF = async () => {
 
 // Initialize on mount
 onMounted(() => {
+    setColumns(); // Set columns based on endpoint
+    fetchCurrentUser();
     fetchData();
 });
 </script>
@@ -556,7 +684,7 @@ onMounted(() => {
     }
 
     .bh-pagination .bh-page-item {
-        @apply w-9 h-9 bg-white-light text-dark border-white-light dark:border-[#191e3a] dark:bg-[#191e3a] dark:text-white-light hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white;
+        @apply w-9 h-9 bg-white-light text-dark border-white-light dark:border-[#191e3a] dark:bg-[#191e3a] dark:text-white-light hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-dark;
     }
 
     .bh-pagination .bh-page-item.bh-active {
