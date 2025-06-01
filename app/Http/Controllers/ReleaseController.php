@@ -23,7 +23,10 @@ class ReleaseController extends Controller
 
     public function list(Request $request): JsonResponse
     {
-        $releases = $this->releaseService->getPaginated($request->input('per_page', 10));
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        
+        $releases = $this->releaseService->getPaginated($perPage, $search);
         
         return response()->json([
             'data' => $releases->items(),
@@ -95,4 +98,4 @@ class ReleaseController extends Controller
             ], 422);
         }
     }
-} 
+}

@@ -14,11 +14,25 @@ class GenreService
         return Genre::with(['createdBy:id,name', 'updatedBy:id,name'])->get();
     }
 
-    public function getPaginated(int $perPage = 10): LengthAwarePaginator
+    public function getPaginated(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        return Genre::with(['createdBy:id,name', 'updatedBy:id,name'])
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = Genre::with(['createdBy:id,name', 'updatedBy:id,name']);
+
+        // Add search functionality
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('status', 'LIKE', "%{$search}%")
+                  ->orWhereHas('createdBy', function ($subQuery) use ($search) {
+                      $subQuery->where('name', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('updatedBy', function ($subQuery) use ($search) {
+                      $subQuery->where('name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
     public function create(array $data): Genre
@@ -62,4 +76,4 @@ class GenreService
 
         return validator($data, $rules)->validate();
     }
-} 
+}

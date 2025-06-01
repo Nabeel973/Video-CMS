@@ -23,7 +23,10 @@ class GenreController extends Controller
 
     public function list(Request $request): JsonResponse
     {
-        $genres = $this->genreService->getPaginated($request->input('per_page', 10));
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        
+        $genres = $this->genreService->getPaginated($perPage, $search);
         
         return response()->json([
             'data' => $genres->items(),
@@ -95,4 +98,4 @@ class GenreController extends Controller
             ], 422);
         }
     }
-} 
+}

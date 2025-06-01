@@ -23,7 +23,10 @@ class CategoryController extends Controller
 
     public function list(Request $request): JsonResponse
     {
-        $categories = $this->categoryService->getPaginated($request->input('per_page', 10));
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        
+        $categories = $this->categoryService->getPaginated($perPage, $search);
         
         return response()->json([
             'data' => $categories->items(),
@@ -95,4 +98,4 @@ class CategoryController extends Controller
             ], 422);
         }
     }
-} 
+}

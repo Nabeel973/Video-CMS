@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
@@ -14,167 +13,85 @@ class UserController extends Controller
 
     public function __construct(UserService $userService)
     {
-        $this->middleware('auth:api');
-        $this->middleware('permission:user.view', ['only' => ['index', 'show']]);
-        $this->middleware('permission:user.create', ['only' => ['store']]);
-        $this->middleware('permission:user.edit', ['only' => ['update']]);
-        $this->middleware('permission:user.delete', ['only' => ['destroy']]);
-        
         $this->userService = $userService;
     }
 
-    /**
-     * Display a listing of users
-     */
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        try {
-            $users = $this->userService->getUsers();
-            $stats = $this->userService->getUserStats();
-
-            // Transform users for frontend
-            $transformedUsers = $users->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'status' => $user->status,
-                    'roles' => $user->roles->pluck('name')->join(', '),
-                    'role_ids' => $user->roles->pluck('id'),
-                    'created_at' => $user->created_at,
-                    'updated_at' => $user->updated_at,
-                    'can_edit' => $this->userService->canManageUser($user),
-                    'can_delete' => $this->userService->canManageUser($user) && $user->id !== Auth::id(),
-                ];
-            });
-
-            return response()->json([
-                'data' => $transformedUsers,
-                'stats' => $stats,
-                'message' => 'Users retrieved successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to retrieve users',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        
+        $users = $this->userService->getPaginated($perPage, $search);
+        
+        // Transform users data to include roles as string
+        $transformedUsers = $users->getCollection()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name')->join(', '),
+                'role_ids' => $user->roles->pluck('id')->toArray(),
+                'status' => $user->status ?? 'inactive',
+                'created_at' => $user->created_at,
+                'can_edit' => true,
+                'can_delete' => true,
+            ];
+        });
+        
+        return response()->json([
+            'data' => $transformedUsers,
+            'meta' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total()
+            ]
+        ]);
     }
 
-    /**
-     * Store a newly created user
-     */
-    public function store(Request $request)
+    public function show(User $user): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'status' => 'required|in:active,inactive',
-            'role_id' => 'required|exists:roles,id'
+        return response()->json([
+            'data' => $user->load('roles')
         ]);
+    }
 
+    public function store(Request $request): JsonResponse
+    {
         try {
-            // Check if user can assign the requested role
-            if (!$this->userService->canAssignRole($request->role_id)) {
-                // Get the role name for better error message
-                $role = \App\Models\Role::find($request->role_id);
-                $roleName = $role ? $role->name : 'this role';
-                
-                return response()->json([
-                    'error' => "You do not have permission to assign the '{$roleName}' role"
-                ], 403);
-            }
-
-            $user = $this->userService->createUser($request->all());
+            $validatedData = $this->userService->validateData($request->all());
+            $user = $this->userService->create($validatedData);
 
             return response()->json([
-                'data' => $user,
-                'message' => 'User created successfully'
+                'message' => 'User created successfully',
+                'data' => $user->load('roles')
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to create user',
-                'message' => $e->getMessage()
-            ], 500);
+                'message' => 'Error creating user',
+                'error' => $e->getMessage()
+            ], 422);
         }
     }
 
-    /**
-     * Display the specified user
-     */
-    public function show(User $user)
+    public function update(Request $request, User $user): JsonResponse
     {
         try {
-            // Check if current user can view this user
-            if (!$this->userService->canManageUser($user)) {
-                return response()->json([
-                    'error' => 'You do not have permission to view this user'
-                ], 403);
-            }
-
-            $user->load('roles');
+            $validatedData = $this->userService->validateData($request->all(), $user->id);
+            $this->userService->update($user, $validatedData);
 
             return response()->json([
-                'data' => $user,
-                'message' => 'User retrieved successfully'
+                'message' => 'User updated successfully',
+                'data' => $user->fresh('roles')
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to retrieve user',
-                'message' => $e->getMessage()
-            ], 500);
+                'message' => 'Error updating user',
+                'error' => $e->getMessage()
+            ], 422);
         }
     }
 
-    /**
-     * Update the specified user
-     */
-    public function update(Request $request, User $user)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->ignore($user->id)
-            ],
-            'password' => 'nullable|string|min:8|confirmed',
-            'status' => 'required|in:active,inactive',
-            'role_id' => 'required|exists:roles,id'
-        ]);
-
-        try {
-            // Check if user can assign the requested role
-            if (!$this->userService->canAssignRole($request->role_id)) {
-                // Get the role name for better error message
-                $role = \App\Models\Role::find($request->role_id);
-                $roleName = $role ? $role->name : 'this role';
-                
-                return response()->json([
-                    'error' => "You do not have permission to assign the '{$roleName}' role"
-                ], 403);
-            }
-
-            $updatedUser = $this->userService->updateUser($user, $request->all());
-
-            return response()->json([
-                'data' => $updatedUser,
-                'message' => 'User updated successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to update user',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Remove the specified user
-     */
     public function destroy(User $user)
     {
         try {

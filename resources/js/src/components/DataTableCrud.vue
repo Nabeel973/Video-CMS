@@ -74,7 +74,13 @@
         <div class="flex md:items-center md:flex-row flex-col mb-5 gap-5">
             <div class="flex items-center gap-5">
                 <div>
-                    <input v-model="search" type="text" class="form-input" placeholder="Search..." />
+                    <input 
+                        v-model="search" 
+                        type="text" 
+                        class="form-input" 
+                        placeholder="Search..." 
+                        @input="handleSearch"
+                    />
                 </div>
             </div>
             <div class="flex items-center gap-5 ltr:ml-auto rtl:mr-auto">
@@ -89,7 +95,7 @@
                 :columns="columns"
                 :totalRows="totalRows"
                 :sortable="true"
-                :search="search"
+                :search="false"
                 skin="whitespace-nowrap bh-table-hover"
                 firstArrow='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5 rtl:rotate-180"> <path d="M13 19L7 12L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/> <path opacity="0.5" d="M16.9998 19L10.9998 12L16.9998 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
                 lastArrow='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5 rtl:rotate-180"> <path d="M11 19L17 12L11 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/> <path opacity="0.5" d="M6.99976 19L12.9998 12L6.99976 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/> </svg>'
@@ -181,7 +187,7 @@ import axios from 'axios';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import * as XLSX from 'xlsx';
 import DynamicModal from './DynamicModal.vue';
 
@@ -215,6 +221,7 @@ const search = ref('');
 const rows = ref([]);
 const totalRows = ref(0);
 const currentUser = ref({});
+const searchTimeout = ref(null);
 
 // Dynamic columns based on endpoint
 const columns = ref([]);
@@ -311,10 +318,15 @@ const fetchCurrentUser = async () => {
     }
 };
 
-// Fetch Data
-const fetchData = async () => {
+// Fetch Data with search functionality
+const fetchData = async (searchQuery = '') => {
     try {
-        const response = await axios.get(`/${props.endpoint}`);
+        const params = {};
+        if (searchQuery && searchQuery.trim() !== '') {
+            params.search = searchQuery.trim();
+        }
+
+        const response = await axios.get(`/${props.endpoint}`, { params });
         
         if (!response.data || !response.data.data) {
             throw new Error('Invalid response format');
@@ -345,7 +357,7 @@ const fetchData = async () => {
             }));
         }
         
-        totalRows.value = rows.value.length;
+        totalRows.value = response.data.meta ? response.data.meta.total : rows.value.length;
     } catch (error) {
         console.error(`Error fetching ${props.title.toLowerCase()}:`, error);
         Swal.fire({
@@ -356,6 +368,27 @@ const fetchData = async () => {
         });
     }
 };
+
+// Handle search with debouncing
+const handleSearch = () => {
+    // Clear existing timeout
+    if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value);
+    }
+
+    // Set new timeout for debouncing (500ms delay)
+    searchTimeout.value = setTimeout(() => {
+        fetchData(search.value);
+    }, 500);
+};
+
+// Watch for search changes
+watch(search, (newValue) => {
+    if (newValue === '') {
+        // If search is cleared, fetch all data immediately
+        fetchData('');
+    }
+});
 
 // Modal Handlers
 const openModal = (itemData = null) => {
@@ -420,7 +453,7 @@ const handleSubmit = async () => {
         
         if (response.data && response.data.message) {
             closeModal();
-            fetchData();
+            fetchData(search.value); // Maintain current search when refreshing data
             
             Swal.fire({
                 title: 'Success!',
@@ -480,7 +513,7 @@ const deleteItem = async (id) => {
             const response = await axios.delete(`/${props.endpoint}/${itemId}`);
             
             if (response.data && response.data.message) {
-                await fetchData();
+                await fetchData(search.value); // Maintain current search when refreshing data
                 
                 Swal.fire({
                     title: 'Deleted!',

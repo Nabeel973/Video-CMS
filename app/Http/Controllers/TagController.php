@@ -23,7 +23,10 @@ class TagController extends Controller
 
     public function list(Request $request): JsonResponse
     {
-        $tags = $this->tagService->getPaginated($request->input('per_page', 10));
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        
+        $tags = $this->tagService->getPaginated($perPage, $search);
         
         return response()->json([
             'data' => $tags->items(),
@@ -85,7 +88,8 @@ class TagController extends Controller
             $this->tagService->delete($tag);
 
             return response()->json([
-                'message' => 'Tag deleted successfully'
+                'message' => 'Tag deleted successfully',
+                'data' => $tag->load(['createdBy:id,name', 'updatedBy:id,name'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -94,4 +98,4 @@ class TagController extends Controller
             ], 422);
         }
     }
-} 
+}
