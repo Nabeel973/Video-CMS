@@ -12,9 +12,9 @@ use Illuminate\Validation\Rule;
 class UserService
 {
     /**
-     * Get users based on current user's role
+     * Get users based on current user's role with filters
      */
-    public function getUsers()
+    public function getUsers($request = null)
     {
         $currentUser = Auth::user();
         $query = User::with(['roles:id,name']);
@@ -26,7 +26,60 @@ class UserService
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->get();
+        // Apply filters if request is provided
+        if ($request) {
+            $this->applyFilters($query, $request);
+        }
+
+        // Apply sorting
+        $sortBy = $request ? $request->get('sort_by', 'created_at') : 'created_at';
+        $sortOrder = $request ? $request->get('sort_order', 'desc') : 'desc';
+        
+        // Validate sort fields
+        $allowedSortFields = ['id', 'name', 'email', 'status', 'created_at', 'updated_at'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'created_at';
+        }
+        
+        $query->orderBy($sortBy, $sortOrder);
+
+        return $query->get();
+    }
+
+    /**
+     * Apply filters to the query
+     */
+    private function applyFilters($query, $request)
+    {
+        // Search filter (name or email)
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+
+        // Role filter
+        if ($request->filled('role_id')) {
+            $query->whereHas('roles', function ($q) use ($request) {
+                $q->where('roles.id', $request->get('role_id'));
+            });
+        }
+
+        // Date range filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->get('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->get('date_to'));
+        }
     }
 
     /**
@@ -227,9 +280,9 @@ class UserService
     }
 
     /**
-     * Get user statistics
+     * Get user statistics with filters
      */
-    public function getUserStats()
+    public function getUserStats($request = null)
     {
         $currentUser = Auth::user();
         $query = User::query();
@@ -241,11 +294,68 @@ class UserService
             });
         }
 
+        // Apply the same filters as in getUsers for consistent stats
+        if ($request) {
+            $this->applyFilters($query, $request);
+        }
+
+        // Clone query for different counts
+        $baseQuery = clone $query;
+        $activeQuery = clone $query;
+        $inactiveQuery = clone $query;
+        $recentQuery = clone $query;
+
         return [
-            'total_users' => $query->count(),
-            'active_users' => $query->where('status', 'active')->count(),
-            'inactive_users' => $query->where('status', 'inactive')->count(),
-            'recent_users' => $query->where('created_at', '>=', now()->subDays(7))->count(),
+            'total_users' => $baseQuery->count(),
+            'active_users' => $activeQuery->where('status', 'active')->count(),
+            'inactive_users' => $inactiveQuery->where('status', 'inactive')->count(),
+            'recent_users' => $recentQuery->where('created_at', '>=', now()->subDays(7))->count(),
+        ];
+    }
+
+    /**
+     * Get filter options for users
+     */
+    public function getFilterOptions()
+    {
+        $currentUser = Auth::user();
+        
+        // Get available roles for filter
+        $rolesQuery = \App\Models\Role::query();
+        
+        // If not super admin, exclude super admin role
+        if (!$currentUser->isSuperAdmin()) {
+            $rolesQuery->where('name', '!=', 'Super Admin');
+        }
+        
+        $roles = $rolesQuery->where('status', 'active')
+                           ->select('id', 'name')
+                           ->get();
+
+        // Get status options
+        $statusOptions = [
+            ['value' => 'active', 'label' => 'Active'],
+            ['value' => 'inactive', 'label' => 'Inactive']
+        ];
+
+        // Get sort options
+        $sortOptions = [
+            ['value' => 'name', 'label' => 'Name'],
+            ['value' => 'email', 'label' => 'Email'],
+            ['value' => 'status', 'label' => 'Status'],
+            ['value' => 'created_at', 'label' => 'Created Date'],
+            ['value' => 'updated_at', 'label' => 'Updated Date']
+        ];
+
+        return [
+            'roles' => $roles->map(function ($role) {
+                return [
+                    'value' => $role->id,
+                    'label' => $role->name
+                ];
+            }),
+            'statuses' => $statusOptions,
+            'sort_options' => $sortOptions
         ];
     }
 }

@@ -24,13 +24,13 @@ class UserController extends Controller
     }
 
     /**
-     * Display a listing of users
+     * Display a listing of users with filters
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $users = $this->userService->getUsers();
-            $stats = $this->userService->getUserStats();
+            $users = $this->userService->getUsers($request);
+            // $stats = $this->userService->getUserStats($request);
 
             // Transform users for frontend
             $transformedUsers = $users->map(function ($user) {
@@ -51,7 +51,7 @@ class UserController extends Controller
 
             return response()->json([
                 'data' => $transformedUsers,
-                'stats' => $stats,
+                // 'stats' => $stats,
                 'message' => 'Users retrieved successfully'
             ]);
         } catch (\Exception $e) {
@@ -223,12 +223,21 @@ class UserController extends Controller
     }
 
     /**
-     * Get user statistics
+     * Get user statistics with filters
      */
-    public function getStats()
+    public function getStats(Request $request)
     {
         try {
-            $stats = $this->userService->getUserStats();
+            // Get filter parameters for stats
+            $filters = [
+                'search' => $request->get('search'),
+                'status' => $request->get('status'),
+                'role_id' => $request->get('role_id'),
+                'date_from' => $request->get('date_from'),
+                'date_to' => $request->get('date_to'),
+            ];
+
+            $stats = $this->userService->getUserStats($filters);
 
             return response()->json([
                 'data' => $stats,
@@ -237,6 +246,26 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Failed to retrieve user statistics',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get filter options for users
+     */
+    public function getFilterOptions()
+    {
+        try {
+            $options = $this->userService->getFilterOptions();
+
+            return response()->json([
+                'data' => $options,
+                'message' => 'Filter options retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve filter options',
                 'message' => $e->getMessage()
             ], 500);
         }
