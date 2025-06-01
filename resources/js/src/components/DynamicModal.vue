@@ -115,6 +115,9 @@ const handleSubmit = async () => {
         const url = localFormData.id ? `/${props.endpoint}/${localFormData.id}` : `/${props.endpoint}`;
         const method = localFormData.id ? 'put' : 'post';
         
+        // Debug log to check what's being sent
+        console.log('Submitting form data:', localFormData);
+        
         const response = await axios[method](url, localFormData);
         
         if (response.data && response.data.message) {
@@ -128,6 +131,7 @@ const handleSubmit = async () => {
             });
         }
     } catch (error) {
+        console.error('Form submission error:', error.response?.data);
         // Let parent handle errors by emitting them
         emit('submit', { error: error.response?.data || error });
     }
@@ -170,6 +174,7 @@ const fetchRoles = async () => {
         const response = await axios.get('/users/roles/available');
         if (response.data && response.data.data) {
             availableRoles.value = response.data.data;
+            console.log('Available roles:', availableRoles.value);
         }
     } catch (error) {
         console.error('Error fetching roles:', error);
@@ -178,13 +183,22 @@ const fetchRoles = async () => {
 
 // Initialize local form data
 const initializeFormData = () => {
+    // Clear existing data first
+    Object.keys(localFormData).forEach(key => {
+        delete localFormData[key];
+    });
+    
+    // Copy all form data properties
     Object.keys(props.formData).forEach(key => {
         localFormData[key] = props.formData[key];
     });
+    
+    console.log('Initialized form data:', localFormData);
 };
 
 // Watch for form data changes
-watch(() => props.formData, () => {
+watch(() => props.formData, (newFormData) => {
+    console.log('Form data changed:', newFormData);
     initializeFormData();
 }, { deep: true, immediate: true });
 

@@ -47,7 +47,10 @@ class UserService
 
             // Assign role if provided
             if (isset($data['role_id'])) {
-                $user->assignRole($data['role_id']);
+                $role = \App\Models\Role::find($data['role_id']);
+                if ($role) {
+                    $user->assignRole($role->name); // Use role name instead of ID
+                }
             }
 
             DB::commit();
@@ -86,7 +89,15 @@ class UserService
 
             // Update role if provided and user has permission
             if (isset($data['role_id']) && $this->canAssignRole($data['role_id'])) {
-                $user->syncRoles([$data['role_id']]);
+                // Get the role by ID first, then assign by name or use syncRoles with ID
+                $role = \App\Models\Role::find($data['role_id']);
+                if ($role) {
+                    // Option 1: Assign by role name
+                    $user->syncRoles([$role->name]);
+                    
+                    // Option 2: Or if you prefer to use ID, make sure your Role model supports it
+                    // $user->roles()->sync([$data['role_id']]);
+                }
             }
 
             DB::commit();
