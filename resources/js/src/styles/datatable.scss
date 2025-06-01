@@ -1,0 +1,57 @@
+.datatable {
+  .bh-table-responsive {
+    @apply rounded-none;
+  }
+
+  .bh-table-responsive table thead tr th {
+    @apply font-bold;
+  }
+
+  .bh-pagination {
+    @apply font-medium;
+  }
+
+  .bh-pagination .bh-page-item {
+    @apply w-9 h-9 bg-white-light text-dark border-white-light dark:border-[#191e3a] dark:bg-[#191e3a] dark:text-white-light hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-dark;
+  }
+
+  .bh-pagination .bh-page-item.bh-active {
+    @apply bg-primary text-white dark:bg-primary dark:text-white;
+  }
+
+  .bh-pagination select {
+    @apply rounded-md border border-[#e0e6ed] bg-white pl-2 pr-4 py-1.5 text-sm font-semibold text-black focus:border-primary focus:ring-transparent dark:border-[#17263c] dark:bg-[#121e32] dark:text-white-dark dark:focus:border-primary;
+  }
+
+  .bh-pagination .bh-pagination-number {
+    @apply rtl:!ml-0 rtl:sm:mr-auto rtl:space-x-reverse;
+  }
+
+  .bh-pagination .bh-pagination-info > span {
+    @apply rtl:mr-0 rtl:ml-2;
+  }
+
+  .bh-filter div button {
+    @apply block;
+  }
+
+  .bh-sort svg polygon {
+    @apply dark:text-dark;
+  }
+
+  .bh-filter .bh-form-control {
+    @apply dark:!border-[#17263c] dark:!bg-[#121e32] dark:!text-white-dark dark:focus:!ring-transparent;
+  }
+
+  .bh-filter > button {
+    @apply dark:border-dark dark:bg-dark dark:text-white-dark dark:hover:text-white-light;
+  }
+
+  .bh-filter-menu button {
+    @apply dark:bg-[#1b2e4b] dark:hover:bg-[#181f32] dark:hover:text-white-dark;
+  }
+
+  .bh-filter-menu button.active {
+    @apply dark:bg-[#181f32];
+  }
+}

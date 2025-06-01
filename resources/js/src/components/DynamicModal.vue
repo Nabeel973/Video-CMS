@@ -14,105 +14,24 @@
 
                 <div class="p-5">
                     <form @submit.prevent="handleSubmit">
-                        <!-- Name Field -->
-                        <div class="mb-5">
-                            <label for="name">Name</label>
-                            <input 
-                                id="name" 
-                                type="text" 
-                                v-model="formData.name" 
-                                class="form-input" 
-                                :placeholder="namePlaceholder" 
-                                :class="{'border-red-500': errors.name}"
-                                :disabled="isOwnRole"
-                            />
-                            <span class="text-red-500 text-sm" v-if="errors.name">{{ errors.name[0] }}</span>
-                            <span class="text-yellow-600 text-sm" v-if="isOwnRole">You cannot modify your own role name</span>
-                        </div>
+                        <!-- Dynamic Form Fields -->
+                        <component 
+                            v-for="field in formFields" 
+                            :key="field.name"
+                            :is="getFieldComponent(field.type)"
+                            :field="field"
+                            :modelValue="localFormData[field.name]"
+                            :error="errors[field.name]"
+                            :disabled="isFieldDisabled(field)"
+                            :options="getFieldOptions(field)"
+                            @update:modelValue="updateField(field.name, $event)"
+                        />
 
-                        <!-- Email Field (for users) -->
-                        <div class="mb-5" v-if="isUserForm">
-                            <label for="email">Email</label>
-                            <input 
-                                id="email" 
-                                type="email" 
-                                v-model="formData.email" 
-                                class="form-input" 
-                                placeholder="Enter email address"
-                                :class="{'border-red-500': errors.email}"
-                            />
-                            <span class="text-red-500 text-sm" v-if="errors.email">{{ errors.email[0] }}</span>
-                        </div>
-
-                        <!-- Password Field (for users) -->
-                        <div class="mb-5" v-if="isUserForm">
-                            <label for="password">Password {{ isEdit ? '(Leave blank to keep current)' : '' }}</label>
-                            <input 
-                                id="password" 
-                                type="password" 
-                                v-model="formData.password" 
-                                class="form-input" 
-                                :placeholder="isEdit ? 'Leave blank to keep current password' : 'Enter password'"
-                                :class="{'border-red-500': errors.password}"
-                            />
-                            <span class="text-red-500 text-sm" v-if="errors.password">{{ errors.password[0] }}</span>
-                        </div>
-
-                        <!-- Password Confirmation Field (for users) -->
-                        <div class="mb-5" v-if="isUserForm">
-                            <label for="password_confirmation">Confirm Password</label>
-                            <input 
-                                id="password_confirmation" 
-                                type="password" 
-                                v-model="formData.password_confirmation" 
-                                class="form-input" 
-                                :placeholder="isEdit ? 'Leave blank to keep current password' : 'Confirm password'"
-                                :class="{'border-red-500': errors.password_confirmation}"
-                            />
-                            <span class="text-red-500 text-sm" v-if="errors.password_confirmation">{{ errors.password_confirmation[0] }}</span>
-                        </div>
-
-                        <!-- Role Field (for users) -->
-                        <div class="mb-5" v-if="isUserForm">
-                            <label for="role_id">Role</label>
-                            <select 
-                                id="role_id" 
-                                v-model="formData.role_id" 
-                                class="form-select" 
-                                :class="{'border-red-500': errors.role_id}"
-                            >
-                                <option value="">Select Role</option>
-                                <option 
-                                    v-for="role in availableRoles" 
-                                    :key="role.id" 
-                                    :value="role.id"
-                                    v-show="role.status === 'active'"
-                                >
-                                    {{ role.name }}
-                                </option>
-                            </select>
-                            <span class="text-red-500 text-sm" v-if="errors.role_id">{{ errors.role_id[0] }}</span>
-                        </div>
-
-                        <!-- Status Field -->
-                        <div class="mb-5">
-                            <label for="status">Status</label>
-                            <select 
-                                id="status" 
-                                v-model="formData.status" 
-                                class="form-select" 
-                                :class="{'border-red-500': errors.status}"
-                                :disabled="isOwnRole"
-                            >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                            <span class="text-red-500 text-sm" v-if="errors.status">{{ errors.status[0] }}</span>
-                            <span class="text-yellow-600 text-sm" v-if="isOwnRole">You cannot modify your own status</span>
-                        </div>
-
+                        <!-- Action Buttons -->
                         <div class="flex justify-end items-center mt-8">
-                            <button type="button" class="btn btn-outline-danger ltr:mr-3 rtl:ml-3" @click="closeModal">Cancel</button>
+                            <button type="button" class="btn btn-outline-danger ltr:mr-3 rtl:ml-3" @click="closeModal">
+                                Cancel
+                            </button>
                             <button type="submit" class="btn btn-primary" :disabled="loading">
                                 {{ loading ? 'Saving...' : 'Save' }}
                             </button>
@@ -125,8 +44,12 @@
 </template>
 
 <script setup>
-import { computed, watch, ref, onMounted } from 'vue';
+import { computed, watch, ref, onMounted, reactive } from 'vue';
 import axios from 'axios';
+import Swal from 'sweetalert2';
+import FormInput from './form/FormInput.vue';
+import FormSelect from './form/FormSelect.vue';
+import FormTextarea from './form/FormTextarea.vue';
 
 const props = defineProps({
     isOpen: {
@@ -139,7 +62,7 @@ const props = defineProps({
     },
     singularTitle: {
         type: String,
-        default: 'Item' // Provide default value
+        default: 'Item'
     },
     formData: {
         type: Object,
@@ -160,22 +83,22 @@ const props = defineProps({
     endpoint: {
         type: String,
         default: ''
+    },
+    formFields: {
+        type: Array,
+        default: () => []
     }
 });
 
-const emit = defineEmits(['close', 'submit']);
+const emit = defineEmits(['close', 'submit', 'update:formData']);
 
 // State
 const availableRoles = ref([]);
+const localFormData = reactive({});
 
 // Computed properties
 const modalTitle = computed(() => {
     return props.isEdit ? `Edit ${props.singularTitle}` : `Add ${props.singularTitle}`;
-});
-
-const namePlaceholder = computed(() => {
-    const title = props.singularTitle || 'item';
-    return `Enter ${title.toLowerCase()} name`;
 });
 
 const isUserForm = computed(() => {
@@ -187,8 +110,57 @@ const closeModal = () => {
     emit('close');
 };
 
-const handleSubmit = () => {
-    emit('submit');
+const handleSubmit = async () => {
+    try {
+        const url = localFormData.id ? `/${props.endpoint}/${localFormData.id}` : `/${props.endpoint}`;
+        const method = localFormData.id ? 'put' : 'post';
+        
+        const response = await axios[method](url, localFormData);
+        
+        if (response.data && response.data.message) {
+            emit('submit', response.data);
+            
+            Swal.fire({
+                title: 'Success!',
+                text: response.data.message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        }
+    } catch (error) {
+        // Let parent handle errors by emitting them
+        emit('submit', { error: error.response?.data || error });
+    }
+};
+
+const updateField = (fieldName, value) => {
+    localFormData[fieldName] = value;
+    emit('update:formData', { ...localFormData });
+};
+
+const getFieldComponent = (type) => {
+    const componentMap = {
+        'text': FormInput,
+        'email': FormInput,
+        'password': FormInput,
+        'select': FormSelect,
+        'textarea': FormTextarea,
+    };
+    return componentMap[type] || FormInput;
+};
+
+const isFieldDisabled = (field) => {
+    if (props.isOwnRole && (field.name === 'name' || field.name === 'status')) {
+        return true;
+    }
+    return field.disabled || false;
+};
+
+const getFieldOptions = (field) => {
+    if (field.name === 'role_id') {
+        return availableRoles.value.filter(role => role.status === 'active');
+    }
+    return field.options || [];
 };
 
 const fetchRoles = async () => {
@@ -204,10 +176,17 @@ const fetchRoles = async () => {
     }
 };
 
-// Watch for form data changes and emit them back to parent
-watch(() => props.formData, (newData) => {
-    // This ensures reactivity is maintained
-}, { deep: true });
+// Initialize local form data
+const initializeFormData = () => {
+    Object.keys(props.formData).forEach(key => {
+        localFormData[key] = props.formData[key];
+    });
+};
+
+// Watch for form data changes
+watch(() => props.formData, () => {
+    initializeFormData();
+}, { deep: true, immediate: true });
 
 // Watch for modal open to fetch roles
 watch(() => props.isOpen, (isOpen) => {
@@ -217,6 +196,7 @@ watch(() => props.isOpen, (isOpen) => {
 });
 
 onMounted(() => {
+    initializeFormData();
     if (props.isOpen && isUserForm.value) {
         fetchRoles();
     }
