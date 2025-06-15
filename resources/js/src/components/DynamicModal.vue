@@ -13,19 +13,19 @@
                 </div>
 
                 <div class="p-5">
-                    <form @submit.prevent="handleSubmit">
+                    <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
                         <!-- Dynamic Form Fields -->
-                        <component 
-                            v-for="field in formFields" 
-                            :key="field.name"
-                            :is="getFieldComponent(field.type)"
-                            :field="field"
-                            :modelValue="localFormData[field.name]"
-                            :error="errors[field.name]"
-                            :disabled="isFieldDisabled(field)"
-                            :options="getFieldOptions(field)"
-                            @update:modelValue="updateField(field.name, $event)"
-                        />
+                        <template v-for="field in visibleFields" :key="field.name">
+                            <component 
+                                :is="getFieldComponent(field.type)"
+                                :field="field"
+                                :modelValue="localFormData[field.name]"
+                                :error="errors[field.name]"
+                                :disabled="isFieldDisabled(field)"
+                                :options="getFieldOptions(field)"
+                                @update:modelValue="updateField(field.name, $event)"
+                            />
+                        </template>
 
                         <!-- Action Buttons -->
                         <div class="flex justify-end items-center mt-8">
@@ -50,6 +50,8 @@ import Swal from 'sweetalert2';
 import FormInput from './form/FormInput.vue';
 import FormSelect from './form/FormSelect.vue';
 import FormTextarea from './form/FormTextarea.vue';
+import FormSwitch from './form/FormSwitch.vue';
+import FormFile from './form/FormFile.vue';
 
 const props = defineProps({
     isOpen: {
@@ -105,6 +107,18 @@ const isUserForm = computed(() => {
     return props.endpoint === 'users';
 });
 
+const visibleFields = computed(() => {
+    return props.formFields.filter(field => {
+        if (!field.conditional) return true;
+        
+        const conditionField = field.conditional.field;
+        const conditionValue = field.conditional.value;
+        const currentValue = localFormData[conditionField];
+        
+        return currentValue === conditionValue;
+    });
+});
+
 // Methods
 const closeModal = () => {
     emit('close');
@@ -115,10 +129,33 @@ const handleSubmit = async () => {
         const url = localFormData.id ? `/${props.endpoint}/${localFormData.id}` : `/${props.endpoint}`;
         const method = localFormData.id ? 'put' : 'post';
         
-        // Debug log to check what's being sent
-        console.log('Submitting form data:', localFormData);
+        // Create FormData for file uploads
+        const formData = new FormData();
         
-        const response = await axios[method](url, localFormData);
+        Object.keys(localFormData).forEach(key => {
+            if (localFormData[key] !== null && localFormData[key] !== undefined) {
+                if (localFormData[key] instanceof File) {
+                    formData.append(key, localFormData[key]);
+                } else {
+                    formData.append(key, localFormData[key]);
+                }
+            }
+        });
+        
+        // Add _method for PUT requests when using FormData
+        if (method === 'put') {
+            formData.append('_method', 'PUT');
+        }
+        
+        console.log('Submitting form data:', Object.fromEntries(formData));
+        
+        const config = {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        };
+        
+        const response = await axios.post(url, formData, config);
         
         if (response.data && response.data.message) {
             emit('submit', response.data);
@@ -149,6 +186,8 @@ const getFieldComponent = (type) => {
         'password': FormInput,
         'select': FormSelect,
         'textarea': FormTextarea,
+        'switch': FormSwitch,
+        'file': FormFile,
     };
     return componentMap[type] || FormInput;
 };

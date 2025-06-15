@@ -1,3 +1,5 @@
+import { computed } from 'vue';
+
 export function useFormConfig() {
   const getFormFields = (endpoint, isEdit = false) => {
     const commonFields = [
@@ -72,6 +74,57 @@ export function useFormConfig() {
         }
       ],
       roles: commonFields,
+      advertisements: [
+        {
+          name: 'name',
+          type: 'text',
+          label: 'Advertisement Name',
+          placeholder: 'Enter advertisement name',
+          required: true
+        },
+        {
+          name: 'type',
+          type: 'switch',
+          label: 'Advertisement Type',
+          options: [
+            { value: 'text', label: 'Text' },
+            { value: 'image', label: 'Image' }
+          ],
+          required: true
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+          label: 'Description',
+          placeholder: 'Enter advertisement description',
+          required: false,
+          conditional: {
+            field: 'type',
+            value: 'text'
+          }
+        },
+        {
+          name: 'image',
+          type: 'file',
+          label: 'Advertisement Image',
+          accept: 'image/*',
+          required: false,
+          conditional: {
+            field: 'type',
+            value: 'image'
+          }
+        },
+        {
+          name: 'status',
+          type: 'select',
+          label: 'Status',
+          options: [
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' }
+          ],
+          required: true
+        }
+      ],
       // Add more endpoints as needed
     };
 
@@ -94,6 +147,14 @@ export function useFormConfig() {
         role_id: ''
       },
       roles: baseData,
+      advertisements: {
+        id: null,
+        name: '',
+        type: 'text',
+        description: '',
+        image: null,
+        status: 'active'
+      },
       // Add more endpoints as needed
     };
 

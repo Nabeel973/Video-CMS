@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('advertisements', function (Blueprint $table) {
             $table->id();
-            $table->text('text');
-            $table->string('type');
+            $table->string('name');
+            $table->enum('type', ['text', 'image'])->default('text');
+            $table->string('image')->nullable();
+            $table->text('description')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->unsignedBigInteger('deleted_by')->nullable();

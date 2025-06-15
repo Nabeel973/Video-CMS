@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Advertisement;
-use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Controller;
 use App\Services\AdvertisementService;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
 
 class AdvertisementController extends Controller
 {
@@ -14,11 +14,6 @@ class AdvertisementController extends Controller
 
     public function __construct(AdvertisementService $advertisementService)
     {
-        $this->middleware('auth:api');
-        $this->middleware('permission:advertisement.view', ['only' => ['index', 'show', 'list']]);
-        $this->middleware('permission:advertisement.create', ['only' => ['store']]);
-        $this->middleware('permission:advertisement.edit', ['only' => ['update']]);
-        $this->middleware('permission:advertisement.delete', ['only' => ['destroy']]);
         $this->advertisementService = $advertisementService;
     }
 
@@ -45,82 +40,216 @@ class AdvertisementController extends Controller
         ]);
     }
 
-    public function show(Advertisement $advertisement): JsonResponse
-    {
-        return response()->json([
-            'data' => $advertisement->load(['creator:id,name', 'updater:id,name'])
-        ]);
-    }
 
+    // public function store(Request $request): JsonResponse
+    // {
+    //     try {
+    //         $validatedData = $request->validate([
+    //             'name' => 'required|string|max:255|unique:advertisements,name',
+    //             'type' => 'required|in:text,image',
+    //             'description' => 'nullable|string|required_if:type,text',
+    //             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|required_if:type,image',
+    //             'status' => 'required|in:active,inactive',
+    //         ]);
+
+    //         $advertisement = $this->advertisementService->createAdvertisement($validatedData, $request->file('image'));
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Advertisement created successfully',
+    //             'data' => $advertisement
+    //         ], 201);
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation failed',
+    //             'errors' => $e->errors()
+    //         ], 422);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to create advertisement',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
     public function store(Request $request): JsonResponse
-    {
-        try {
-            $validatedData = $this->advertisementService->validateData($request->all());
-            $advertisement = $this->advertisementService->create($validatedData);
+{
+    try {
+        // Validate file upload separately
+   
+        $advertisement = $this->advertisementService->createAdvertisement(
+            $request->all(), 
+            $request->file('image')
+        );
 
-            return response()->json([
-                'message' => 'Advertisement created successfully',
-                'data' => $advertisement
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error creating advertisement',
-                'error' => $e->getMessage()
-            ], 422);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Advertisement created successfully',
+            'data' => $advertisement
+        ], 201);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        // Log the full error for debugging
+        \Log::error('Advertisement creation error', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create advertisement',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
-    public function update(Request $request, Advertisement $advertisement): JsonResponse
-    {
-        try {
-            $validatedData = $this->advertisementService->validateData($request->all());
-            $this->advertisementService->update($advertisement, $validatedData);
+public function update(Request $request, $id): JsonResponse
+{
+    try {
+        // First validate the file upload rules at controller level
+        $request->validate([
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
+        // Debug: Log the incoming request data
+        \Log::info('Advertisement update request', [
+            'id' => $id,
+            'request_data' => $request->all(),
+            'has_file' => $request->hasFile('image')
+        ]);
+
+        $advertisement = $this->advertisementService->updateAdvertisement(
+            $id, 
+            $request->all(), 
+            $request->file('image')
+        );
+
+        if (!$advertisement) {
             return response()->json([
-                'message' => 'Advertisement updated successfully',
-                'data' => $advertisement->fresh(['creator:id,name', 'updater:id,name'])
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error updating advertisement',
-                'error' => $e->getMessage()
-            ], 422);
+                'success' => false,
+                'message' => 'Advertisement not found'
+            ], 404);
         }
-    }
 
-    public function destroy(Advertisement $advertisement): JsonResponse
+        return response()->json([
+            'success' => true,
+            'message' => 'Advertisement updated successfully',
+            'data' => $advertisement
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        // Log the full error for debugging
+        \Log::error('Advertisement update error', [
+            'id' => $id,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update advertisement',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
+    public function show($id): JsonResponse
     {
         try {
-            $this->advertisementService->delete($advertisement);
-
-            return response()->json([
-                'message' => 'Advertisement deleted successfully',
-                'data' => $advertisement->load(['creator:id,name', 'updater:id,name'])
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error deleting advertisement',
-                'error' => $e->getMessage()
-            ], 422);
-        }
-    }
-
-    /**
-     * Get advertisement types
-     */
-    public function getTypes(): JsonResponse
-    {
-        try {
-            $types = $this->advertisementService->getAdvertisementTypes();
+            $advertisement = $this->advertisementService->getAdvertisement($id);
+            
+            if (!$advertisement) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Advertisement not found'
+                ], 404);
+            }
 
             return response()->json([
                 'success' => true,
-                'data' => $types
+                'data' => $advertisement
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch advertisement types',
+                'message' => 'Failed to fetch advertisement',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // public function update(Request $request, $id): JsonResponse
+    // {
+    //     try {
+    //         $validatedData = $request->validate([
+    //             'name' => ['required', 'string', 'max:255', Rule::unique('advertisements')->ignore($id)],
+    //             'type' => 'required|in:text,image',
+    //             'description' => 'nullable|string|required_if:type,text',
+    //             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    //             'status' => 'required|in:active,inactive',
+    //         ]);
+
+    //         $advertisement = $this->advertisementService->updateAdvertisement($id, $validatedData, $request->file('image'));
+
+    //         if (!$advertisement) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Advertisement not found'
+    //             ], 404);
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Advertisement updated successfully',
+    //             'data' => $advertisement
+    //         ]);
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation failed',
+    //             'errors' => $e->errors()
+    //         ], 422);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to update advertisement',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    public function destroy($id): JsonResponse
+    {
+        try {
+            $deleted = $this->advertisementService->deleteAdvertisement($id);
+
+            if (!$deleted) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Advertisement not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Advertisement deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete advertisement',
                 'error' => $e->getMessage()
             ], 500);
         }

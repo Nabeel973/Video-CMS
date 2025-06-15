@@ -2,18 +2,46 @@ import { ref } from 'vue';
 
 export function useTableConfig() {
   const getColumnsForEndpoint = (endpoint) => {
-    const baseColumns = [
-      { field: 'id', title: 'ID', isUnique: true, hide: false },
-      { field: 'name', title: 'Name', hide: false },
-    ];
-
-    const commonColumns = [
-      { field: 'status', title: 'Status', hide: false },
-      { field: 'created_at', title: 'Created At', hide: false },
-      { field: 'actions', title: 'Actions', sortable: false, hide: false },
-    ];
-
-    const endpointSpecificColumns = {
+    const configs = {
+      advertisements: [
+        {
+          field: 'id',
+          title: 'ID',
+          type: 'number',
+          width: '80px'
+        },
+        {
+          field: 'name',
+          title: 'Name',
+          type: 'string'
+        },
+        {
+          field: 'type',
+          title: 'Type',
+          type: 'string'
+        },
+        {
+          field: 'description',
+          title: 'Description',
+          type: 'string'
+        },
+        {
+          field: 'status',
+          title: 'Status',
+          type: 'string'
+        },
+        {
+          field: 'created_at',
+          title: 'Created At',
+          type: 'date'
+        },
+        {
+          field: 'actions',
+          title: 'Actions',
+          type: 'string',
+          width: '120px'
+        }
+      ],
       users: [
         { field: 'email', title: 'Email', hide: false },
         { field: 'roles', title: 'Role', hide: false },
@@ -25,16 +53,7 @@ export function useTableConfig() {
       // Add more endpoints as needed
     };
 
-    const specificColumns = endpointSpecificColumns[endpoint] || [
-      { field: 'created_by', title: 'Created By', hide: false },
-      { field: 'updated_by', title: 'Updated By', hide: false },
-    ];
-
-    return [
-      ...baseColumns,
-      ...specificColumns,
-      ...commonColumns,
-    ];
+    return configs[endpoint] || [];
   };
 
   const getFormFieldsForEndpoint = (endpoint) => {
@@ -49,30 +68,13 @@ export function useTableConfig() {
     return endpointFields[endpoint] || baseFields;
   };
 
-  const transformRowData = (data, endpoint) => {
-    if (endpoint === 'users') {
-      return data.map(item => ({
-        id: item.id,
-        name: item.name,
-        email: item.email,
-        roles: item.roles,
-        role_ids: item.role_ids,
-        status: item.status || 'inactive',
-        created_at: item.created_at,
-        actions: item.id,
-        can_edit: item.can_edit,
-        can_delete: item.can_delete
-      }));
-    }
-
+  const transformRowData = (data) => {
     return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      status: item.status || 'inactive',
-      created_by: item.created_by?.name || 'N/A',
-      updated_by: item.updated_by?.name || 'N/A',
-      created_at: item.created_at,
-      actions: item.id
+      ...item,
+      type: item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'Text',
+      description: item.description ? 
+        (item.description.length > 50 ? item.description.substring(0, 50) + '...' : item.description) 
+        : '-'
     }));
   };
 

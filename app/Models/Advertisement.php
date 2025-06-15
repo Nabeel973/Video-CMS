@@ -11,12 +11,14 @@ class Advertisement extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'name',
         'text',
         'type',
         'created_by',
         'updated_by',
         'deleted_by',
         'status',
+        'image'
     ];
 
     protected $casts = [
