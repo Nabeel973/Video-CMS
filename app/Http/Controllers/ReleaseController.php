@@ -13,6 +13,11 @@ class ReleaseController extends Controller
 
     public function __construct(ReleaseService $releaseService)
     {
+        $this->middleware('auth:api');
+        $this->middleware('permission:user.view', ['only' => ['index', 'show']]);
+        $this->middleware('permission:user.create', ['only' => ['store']]);
+        $this->middleware('permission:user.edit', ['only' => ['update']]);
+        $this->middleware('permission:user.delete', ['only' => ['destroy']]);
         $this->releaseService = $releaseService;
     }
 

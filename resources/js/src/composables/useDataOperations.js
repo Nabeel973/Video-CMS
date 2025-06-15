@@ -1,6 +1,6 @@
-import { ref } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { ref } from 'vue';
 
 export function useDataOperations(endpoint) {
   const loading = ref(false);
@@ -15,7 +15,8 @@ export function useDataOperations(endpoint) {
       'permissions': 'Permission',
       'categories': 'Category',
       'videos': 'Video',
-      'tags': 'Tag'
+      'tags': 'Tag',
+      'advertisement': 'Advertisement',
     };
     
     return singularMap[endpoint] || endpoint.slice(0, -1); // Remove 's' as fallback

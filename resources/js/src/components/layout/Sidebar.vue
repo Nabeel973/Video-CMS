@@ -117,7 +117,7 @@
                         </li>
 
                         <!-- Pages Section - Only visible with appropriate permissions -->
-                        <li v-if="hasAnyPermission(['tag.view', 'tag.create', 'tag.edit', 'tag.delete', 'genre.view', 'genre.create', 'genre.edit', 'genre.delete', 'release.view', 'release.create', 'release.edit', 'release.delete', 'category.view', 'category.create', 'category.edit', 'category.delete'])" class="menu nav-item">
+                        <li v-if="hasAnyPermission(['tag.view', 'tag.create', 'tag.edit', 'tag.delete', 'genre.view', 'genre.create', 'genre.edit', 'genre.delete', 'release.view', 'release.create', 'release.edit', 'release.delete', 'category.view', 'category.create', 'category.edit', 'category.delete', 'advertisement.view', 'advertisement.create', 'advertisement.edit', 'advertisement.delete'])" class="menu nav-item">
                             <button
                                 type="button"
                                 class="nav-link group w-full"
@@ -173,6 +173,9 @@
                                     </li>
                                     <li v-if="hasAnyPermission(['category.view', 'category.create', 'category.edit', 'category.delete'])">
                                         <router-link to="/admin/categories" @click="toggleMobileMenu">Category</router-link>
+                                    </li>
+                                    <li v-if="hasAnyPermission(['advertisement.view', 'advertisement.create', 'advertisement.edit', 'advertisement.delete'])">
+                                        <router-link to="/admin/advertisements" @click="toggleMobileMenu">Advertisements</router-link>
                                     </li>
                                 </ul>
                             </vue-collapsible>

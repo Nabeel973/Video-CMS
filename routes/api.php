@@ -3,9 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ReleaseController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\Api\Auth\AuthController;
 
 /*
@@ -58,7 +61,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/tags/{tag}', [TagController::class, 'update']);
     Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
 
-
     // Users
     Route::get('/users', [App\Http\Controllers\UserController::class, 'index']);
     Route::post('/users', [App\Http\Controllers\UserController::class, 'store']);
@@ -77,4 +79,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/permissions', [App\Http\Controllers\RoleController::class, 'getAllPermissions']);
     Route::post('/roles/{role}/permissions', [App\Http\Controllers\RoleController::class, 'assignPermissions']);
     Route::get('/roles/{role}/permissions', [App\Http\Controllers\RoleController::class, 'getRolePermissions']);
+
+
+    Route::get('/advertisements', [AdvertisementController::class, 'list']);
+    Route::get('/types', [AdvertisementController::class, 'getTypes']);
+    Route::get('/{advertisement}', [AdvertisementController::class, 'show']);
+    Route::post('/advertisements', [AdvertisementController::class, 'store']);
+    Route::put('/{advertisement}', [AdvertisementController::class, 'update']);
+    Route::delete('/{advertisement}', [AdvertisementController::class, 'destroy']);
 });
+
+
