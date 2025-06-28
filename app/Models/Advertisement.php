@@ -12,7 +12,6 @@ class Advertisement extends Model
 
     protected $fillable = [
         'name',
-        'text',
         'type',
         'created_by',
         'updated_by',

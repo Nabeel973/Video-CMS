@@ -214,7 +214,12 @@ const openModal = async (itemData = null) => {
                     form[key] = data.role_ids ? data.role_ids[0] : '';
                 } else if (key === 'password' || key === 'password_confirmation') {
                     form[key] = '';
-                } else {
+                } 
+                else if (key === 'type' && props.endpoint === 'advertisements') {
+                    const typeValue = data[key];
+                    form[key] = typeValue ? typeValue.toLowerCase() : 'text';
+                }
+                else {
                     form[key] = data[key] || form[key];
                 }
             });

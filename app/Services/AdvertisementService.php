@@ -167,12 +167,16 @@ class AdvertisementService
     public function validateCreateData(array $data): array
     {
         $rules = [
-           'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:advertisements,name',
             'type' => 'required|string|in:text,image',
             'description' => 'nullable|string|required_if:type,text',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|required_if:type,image',
             'status' => 'required|in:active,inactive',
         ];
+
+        // Don't validate image file here as it's handled separately
+        if (isset($data['image']) && !is_file($data['image'])) {
+            unset($data['image']);
+        }
 
         return validator($data, $rules)->validate();
     }
@@ -186,9 +190,13 @@ class AdvertisementService
             'name' => ['required', 'string', 'max:255', Rule::unique('advertisements')->ignore($id)],
             'type' => 'required|string|in:text,image',
             'description' => 'nullable|string|required_if:type,text',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|required_if:type,image',
             'status' => 'required|in:active,inactive',
         ];
+
+        // Don't validate image file here as it's handled separately
+        if (isset($data['image']) && !is_file($data['image'])) {
+            unset($data['image']);
+        }
 
         return validator($data, $rules)->validate();
     }
