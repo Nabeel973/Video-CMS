@@ -23,7 +23,7 @@
                         </svg>
                     </a>
                 </div>
-                <div class="ltr:mr-2 rtl:ml-2 hidden sm:block">
+                <!-- <div class="ltr:mr-2 rtl:ml-2 hidden sm:block">
                     <ul class="flex items-center space-x-2 rtl:space-x-reverse dark:text-[#d0d2d6]">
                         <li>
                             <router-link
@@ -87,12 +87,12 @@
                             </router-link>
                         </li>
                     </ul>
-                </div>
+                </div> -->
                 <div
                     class="sm:flex-1 ltr:sm:ml-0 ltr:ml-auto sm:rtl:mr-0 rtl:mr-auto flex items-center space-x-1.5 lg:space-x-2 rtl:space-x-reverse dark:text-[#d0d2d6]"
                 >
                     <div class="sm:ltr:mr-auto sm:rtl:ml-auto">
-                        <form
+                        <!-- <form
                             class="sm:relative absolute inset-x-0 sm:top-0 top-1/2 sm:translate-y-0 -translate-y-1/2 sm:mx-0 mx-4 z-10 sm:block hidden"
                             :class="{ '!block': search }"
                             @submit.prevent="search = false"
@@ -143,9 +143,9 @@
                                 <circle cx="11.5" cy="11.5" r="9.5" stroke="currentColor" stroke-width="1.5" opacity="0.5" />
                                 <path d="M18.5 18.5L22 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                             </svg>
-                        </button>
+                        </button> -->
                     </div>
-                    <div>
+                    <!-- <div>
                         <a
                             href="javascript:;"
                             v-show="store.theme === 'light'"
@@ -193,9 +193,9 @@
                                 <path opacity="0.5" d="M15 15H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                             </svg>
                         </a>
-                    </div>
+                    </div> -->
 
-                    <div class="dropdown shrink-0">
+                    <!-- <div class="dropdown shrink-0">
                         <Popper :placement="store.rtlClass === 'rtl' ? 'bottom-end' : 'bottom-start'" offsetDistance="8">
                             <button
                                 type="button"
@@ -225,9 +225,9 @@
                                 </ul>
                             </template>
                         </Popper>
-                    </div>
+                    </div> -->
 
-                    <div class="dropdown shrink-0">
+                    <!-- <div class="dropdown shrink-0">
                         <Popper :placement="store.rtlClass === 'rtl' ? 'bottom-start' : 'bottom-end'" offsetDistance="8">
                             <button
                                 type="button"
@@ -337,9 +337,9 @@
                                 </ul>
                             </template>
                         </Popper>
-                    </div>
+                    </div> -->
 
-                    <div class="dropdown shrink-0">
+                    <!-- <div class="dropdown shrink-0">
                         <Popper :placement="store.rtlClass === 'rtl' ? 'bottom-end' : 'bottom-start'" offsetDistance="8">
                             <button
                                 type="button"
@@ -448,7 +448,7 @@
                                 </ul>
                             </template>
                         </Popper>
-                    </div>
+                    </div> -->
 
                     <div class="dropdown shrink-0">
                         <Popper :placement="store.rtlClass === 'rtl' ? 'bottom-end' : 'bottom-start'" offsetDistance="8" class="!block">
