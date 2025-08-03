@@ -111,6 +111,7 @@ class AdvertisementController extends Controller
 
 public function update(Request $request, $id): JsonResponse
 {
+   
     try {
         // First validate the file upload rules at controller level
         $request->validate([
@@ -162,7 +163,7 @@ public function update(Request $request, $id): JsonResponse
             'error' => $e->getMessage()
         ], 500);
     }
-}
+}                 
 
 
     public function show($id): JsonResponse
@@ -190,46 +191,7 @@ public function update(Request $request, $id): JsonResponse
         }
     }
 
-    // public function update(Request $request, $id): JsonResponse
-    // {
-    //     try {
-    //         $validatedData = $request->validate([
-    //             'name' => ['required', 'string', 'max:255', Rule::unique('advertisements')->ignore($id)],
-    //             'type' => 'required|in:text,image',
-    //             'description' => 'nullable|string|required_if:type,text',
-    //             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-    //             'status' => 'required|in:active,inactive',
-    //         ]);
-
-    //         $advertisement = $this->advertisementService->updateAdvertisement($id, $validatedData, $request->file('image'));
-
-    //         if (!$advertisement) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Advertisement not found'
-    //             ], 404);
-    //         }
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Advertisement updated successfully',
-    //             'data' => $advertisement
-    //         ]);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Validation failed',
-    //             'errors' => $e->errors()
-    //         ], 422);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to update advertisement',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
+    
     public function destroy($id): JsonResponse
     {
         try {

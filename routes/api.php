@@ -81,12 +81,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/roles/{role}/permissions', [App\Http\Controllers\RoleController::class, 'getRolePermissions']);
 
 
+    // Advertisements
     Route::get('/advertisements', [AdvertisementController::class, 'list']);
-    Route::get('/types', [AdvertisementController::class, 'getTypes']);
-    Route::get('/{advertisement}', [AdvertisementController::class, 'show']);
     Route::post('/advertisements', [AdvertisementController::class, 'store']);
-    Route::put('/{advertisement}', [AdvertisementController::class, 'update']);
-    Route::delete('/{advertisement}', [AdvertisementController::class, 'destroy']);
+    Route::get('/advertisements/{advertisement}', [AdvertisementController::class, 'show']);
+    Route::put('/advertisements/{advertisement}', [AdvertisementController::class, 'update']);
+    Route::delete('/advertisements/{advertisement}', [AdvertisementController::class, 'destroy']);
 });
 
 

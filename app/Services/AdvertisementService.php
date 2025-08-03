@@ -14,12 +14,12 @@ class AdvertisementService
 {
     public function getAll(): Collection
     {
-        return Advertisement::with(['creator:id,name', 'updater:id,name'])->get();
+        return Advertisement::with(['createdBy:id,name', 'updatedBy:id,name'])->get();
     }
 
     public function getPaginated(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        $query = Advertisement::with(['creator:id,name', 'updater:id,name']);
+        $query = Advertisement::with(['createdBy:id,name', 'updatedBy:id,name']);
 
         // Add search functionality
         if (!empty($search)) {
@@ -28,10 +28,10 @@ class AdvertisementService
                   ->orWhere('type', 'LIKE', "%{$search}%")
                   ->orWhere('description', 'LIKE', "%{$search}%")
                   ->orWhere('status', 'LIKE', "%{$search}%")
-                  ->orWhereHas('creator', function ($subQuery) use ($search) {
+                  ->orWhereHas('createdBy', function ($subQuery) use ($search) {
                       $subQuery->where('name', 'LIKE', "%{$search}%");
                   })
-                  ->orWhereHas('updater', function ($subQuery) use ($search) {
+                  ->orWhereHas('updatedBy', function ($subQuery) use ($search) {
                       $subQuery->where('name', 'LIKE', "%{$search}%");
                   });
             });
@@ -98,11 +98,21 @@ class AdvertisementService
             // Validate data first
             $validatedData = $this->validateUpdateData($data, $id);
 
-            // Handle file upload
-            if ($imageFile && $imageFile->isValid()) {
+            // Handle image deletion if type is text and image field is empty
+            if (isset($validatedData['type']) && $validatedData['type'] === 'text' && 
+                isset($data['image']) && empty($data['image'])) {
                 // Delete old image if exists
-                if ($advertisement->image_path && Storage::disk('public')->exists($advertisement->image_path)) {
-                    Storage::disk('public')->delete($advertisement->image_path);
+                if ($advertisement->image && Storage::disk('public')->exists($advertisement->image)) {
+                    Storage::disk('public')->delete($advertisement->image);
+                }
+                // Set image to null in database
+                $validatedData['image'] = null;
+            }
+            // Handle file upload
+            elseif ($imageFile && $imageFile->isValid()) {
+                // Delete old image if exists
+                if ($advertisement->image && Storage::disk('public')->exists($advertisement->image)) {
+                    Storage::disk('public')->delete($advertisement->image);
                 }
 
                 $imageData = $this->handleFileUpload($imageFile);
@@ -114,7 +124,7 @@ class AdvertisementService
 
             $advertisement->update($validatedData);
             
-            return $advertisement->fresh(['creator:id,name', 'updater:id,name']);
+            return $advertisement->fresh(['createdBy:id,name', 'updatedBy:id,name']);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Re-throw validation exception so controller can handle it
             throw $e;
@@ -144,8 +154,8 @@ class AdvertisementService
         }
 
         // Delete associated image file
-        if ($advertisement->image_path && Storage::disk('public')->exists($advertisement->image_path)) {
-            Storage::disk('public')->delete($advertisement->image_path);
+        if ($advertisement->image && Storage::disk('public')->exists($advertisement->image)) {
+            Storage::disk('public')->delete($advertisement->image);
         }
 
         return $advertisement->delete();
@@ -153,7 +163,7 @@ class AdvertisementService
 
     public function findById(int $id): ?Advertisement
     {
-        return Advertisement::with(['creator:id,name', 'updater:id,name'])->find($id);
+        return Advertisement::with(['createdBy:id,name', 'updatedBy:id,name'])->find($id);
     }
 
     public function getAdvertisement(int $id): ?Advertisement
@@ -210,8 +220,7 @@ class AdvertisementService
         $imagePath = $file->storeAs('advertisements', $imageName, 'public');
         
         return [
-            'image_path' => $imagePath,
-            'image_url' => asset('storage/' . $imagePath)
+            'image' => $imagePath
         ];
     }
 

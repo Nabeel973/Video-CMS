@@ -13,6 +13,7 @@ class Advertisement extends Model
     protected $fillable = [
         'name',
         'type',
+        'description',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -26,10 +27,14 @@ class Advertisement extends Model
         'deleted_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'image_url'
+    ];
+
     /**
      * Get the user who created the advertisement
      */
-    public function creator()
+    public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -37,7 +42,7 @@ class Advertisement extends Model
     /**
      * Get the user who last updated the advertisement
      */
-    public function updater()
+    public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
@@ -72,5 +77,21 @@ class Advertisement extends Model
     public function scopeOfType($query, $type)
     {
         return $query->where('type', $type);
+    }
+
+    /**
+     * Get the full image URL
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            // If it's already a full URL, return as is
+            if (str_starts_with($this->image, 'http') || str_starts_with($this->image, '/')) {
+                return $this->image;
+            }
+            // Otherwise, construct the storage URL
+            return asset('storage/' . $this->image);
+        }
+        return null;
     }
 }

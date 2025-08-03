@@ -65,7 +65,6 @@
                         :current-user="currentUser"
                         :singular-title="singularTitle"
                         @edit="editItem"
-
                         @delete="handleDeleteItem"
                     />
                 </template>
@@ -166,6 +165,7 @@ const dynamicTemplates = computed(() => {
     const templates = [
         { name: 'status', component: StatusTemplate },
         { name: 'created_at', component: DateTemplate },
+        { name: 'updated_at', component: DateTemplate },
         { name: 'actions', component: ActionsTemplate }
     ];
 
@@ -190,9 +190,13 @@ const isOwnRole = computed(() => {
 // Methods
 const initializeConfiguration = () => {
     columns.value = getColumnsForEndpoint(props.endpoint);
+    console.log('columns.value' , columns.value);
     formFields.value = getFormFields(props.endpoint, isEdit.value);
+      console.log('formFields.value' , formFields.value);
     
     const initialData = getInitialFormData(props.endpoint);
+
+     console.log('initialData.value' , initialData);
     Object.keys(initialData).forEach(key => {
         form[key] = initialData[key];
     });
@@ -218,6 +222,16 @@ const openModal = async (itemData = null) => {
                 else if (key === 'type' && props.endpoint === 'advertisements') {
                     const typeValue = data[key];
                     form[key] = typeValue ? typeValue.toLowerCase() : 'text';
+                }
+                else if (key === 'image' && props.endpoint === 'advertisements') {
+                    // For existing images, use the image_url for display but keep original path
+                    const imageValue = data.image_url || data[key] || form[key];
+                    console.log('Advertisement image data:', { 
+                        image: data[key], 
+                        image_url: data.image_url, 
+                        final_value: imageValue 
+                    });
+                    form[key] = imageValue;
                 }
                 else {
                     form[key] = data[key] || form[key];

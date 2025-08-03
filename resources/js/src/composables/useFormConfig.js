@@ -123,7 +123,7 @@ export function useFormConfig() {
             { value: 'inactive', label: 'Inactive' }
           ],
           required: true
-        }
+        },
       ],
       // Add more endpoints as needed
     };

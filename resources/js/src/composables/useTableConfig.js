@@ -1,59 +1,4 @@
 export function useTableConfig() {
-  // const getColumnsForEndpoint = (endpoint) => {
-  //   const configs = {
-  //     advertisements: [
-  //       {
-  //         field: 'id',
-  //         title: 'ID',
-  //         type: 'number',
-  //         width: '80px'
-  //       },
-  //       {
-  //         field: 'name',
-  //         title: 'Name',
-  //         type: 'string'
-  //       },
-  //       {
-  //         field: 'type',
-  //         title: 'Type',
-  //         type: 'string'
-  //       },
-  //       {
-  //         field: 'description',
-  //         title: 'Description',
-  //         type: 'string'
-  //       },
-  //       {
-  //         field: 'status',
-  //         title: 'Status',
-  //         type: 'string'
-  //       },
-  //       {
-  //         field: 'created_at',
-  //         title: 'Created At',
-  //         type: 'date'
-  //       },
-  //       {
-  //         field: 'actions',
-  //         title: 'Actions',
-  //         type: 'string',
-  //         width: '120px'
-  //       }
-  //     ],
-  //     users: [
-  //       { field: 'email', title: 'Email', hide: false },
-  //       { field: 'roles', title: 'Role', hide: false },
-  //     ],
-  //     roles: [
-  //       { field: 'created_by', title: 'Created By', hide: false },
-  //       { field: 'updated_by', title: 'Updated By', hide: false },
-  //     ],
-  //     // Add more endpoints as needed
-  //   };
-
-  //   return configs[endpoint] || [];
-  // };
-
 
   const getColumnsForEndpoint = (endpoint) => {
     const baseColumns = [
@@ -63,7 +8,10 @@ export function useTableConfig() {
 
     const commonColumns = [
       { field: 'status', title: 'Status', hide: false },
+      { field: 'created_by', title: 'Created By', hide: false },
+      { field: 'updated_by', title: 'Updated By', hide: false },
       { field: 'created_at', title: 'Created At', hide: false },
+      { field: 'updated_at', title: 'Updated At', hide: false },
       { field: 'actions', title: 'Actions', sortable: false, hide: false },
     ];
 
@@ -72,17 +20,16 @@ export function useTableConfig() {
         { field: 'email', title: 'Email', hide: false },
         { field: 'roles', title: 'Role', hide: false },
       ],
-      roles: [
-        { field: 'created_by', title: 'Created By', hide: false },
-        { field: 'updated_by', title: 'Updated By', hide: false },
+      roles: [],
+      advertisements: [
+        { field: 'type', title: 'Type', hide: false },
+        { field: 'description', title: 'Description', hide: false },
+        
       ],
       // Add more endpoints as needed
     };
 
-    const specificColumns = endpointSpecificColumns[endpoint] || [
-      { field: 'created_by', title: 'Created By', hide: false },
-      { field: 'updated_by', title: 'Updated By', hide: false },
-    ];
+    const specificColumns = endpointSpecificColumns[endpoint] || [];
 
     return [
       ...baseColumns,
@@ -91,17 +38,6 @@ export function useTableConfig() {
     ];
   };
 
-  // const getFormFieldsForEndpoint = (endpoint) => {
-  //   const baseFields = ['name', 'status'];
-    
-  //   const endpointFields = {
-  //     users: ['name', 'email', 'password', 'password_confirmation', 'role_id', 'status'],
-  //     roles: ['name', 'status'],
-  //     // Add more endpoints as needed
-  //   };
-
-  //   return endpointFields[endpoint] || baseFields;
-  // };
 
   const transformRowData = (data) => {
     return data.map(item => ({
@@ -121,10 +57,13 @@ export function useTableConfig() {
       roles: item.roles && Array.isArray(item.roles) 
         ? item.roles.map(role => typeof role === 'object' ? role.name : role).join(', ')
         : item.roles,
-      // Format created_at date
+      // Format created_at and updated_at dates
       created_at: item.created_at 
         ? new Date(item.created_at).toLocaleDateString()
-        : item.created_at
+        : item.created_at,
+      updated_at: item.updated_at 
+        ? new Date(item.updated_at).toLocaleDateString()
+        : item.updated_at
     }));
   };
 

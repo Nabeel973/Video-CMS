@@ -97,6 +97,7 @@ const emit = defineEmits(['close', 'submit', 'update:formData']);
 // State
 const availableRoles = ref([]);
 const localFormData = reactive({});
+const originalImageValue = ref(null); // Store original image value
 
 // Computed properties
 const modalTitle = computed(() => {
@@ -176,6 +177,25 @@ const handleSubmit = async () => {
 
 const updateField = (fieldName, value) => {
     localFormData[fieldName] = value;
+    
+    // Handle type changes for advertisements
+    if (props.endpoint === 'advertisements' && fieldName === 'type') {
+        console.log('Type changing to:', value);
+        console.log('Current image:', localFormData.image);
+        console.log('Original image value:', originalImageValue.value);
+        
+        if (value === 'text') {
+            // Clear image field for text type
+            localFormData.image = '';
+        } else if (value === 'image') {
+            // Restore original image when switching back to image type
+            if (originalImageValue.value) {
+                localFormData.image = originalImageValue.value;
+                console.log('Restored image:', localFormData.image);
+            }
+        }
+    }
+    
     emit('update:formData', { ...localFormData });
 };
 
@@ -227,10 +247,23 @@ const initializeFormData = () => {
         delete localFormData[key];
     });
     
+    // Reset original image value
+    originalImageValue.value = null;
+    
     // Copy all form data properties
     Object.keys(props.formData).forEach(key => {
         localFormData[key] = props.formData[key];
     });
+    
+    // Handle existing image URLs for advertisements
+    if (props.endpoint === 'advertisements' && props.isEdit && props.formData.image) {
+        // If it's a string (existing image path), keep it as is for preview
+        if (typeof props.formData.image === 'string') {
+            localFormData.image = props.formData.image;
+            // Store as original value so it can be restored
+            originalImageValue.value = props.formData.image;
+        }
+    }
     
     console.log('Initialized form data:', localFormData);
 };
