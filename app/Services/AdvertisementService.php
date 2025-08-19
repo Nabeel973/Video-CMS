@@ -97,10 +97,10 @@ class AdvertisementService
 
             // Validate data first
             $validatedData = $this->validateUpdateData($data, $id);
+            // dd($validatedData);
 
             // Handle image deletion if type is text and image field is empty
-            if (isset($validatedData['type']) && $validatedData['type'] === 'text' && 
-                isset($data['image']) && empty($data['image'])) {
+            if (isset($validatedData['type']) && ($validatedData['type'] === 'text' || empty($data['image']))) {
                 // Delete old image if exists
                 if ($advertisement->image && Storage::disk('public')->exists($advertisement->image)) {
                     Storage::disk('public')->delete($advertisement->image);

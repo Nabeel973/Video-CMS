@@ -46,6 +46,7 @@ class RoleService
         return $role->update([
             'name' => $data['name'],
             'guard_name' => $data['guard_name'] ?? 'web',
+            'updated_by' => Auth::id(),
         ]);
     }
 
