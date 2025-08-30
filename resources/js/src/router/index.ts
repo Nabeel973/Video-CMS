@@ -89,6 +89,12 @@ const routes: RouteRecordRaw[] = [
         meta: { layout: 'auth' },
     },
     {
+        path: '/admin/movies',
+        name: 'admin-movies',
+        component: () => import(/* webpackChunkName: "admin-roles" */ '../views/admin/movies/index.vue'),
+        meta: { layout: 'auth' },
+    },
+    {
         path: '/roles/:id/permissions',
         name: 'role-permissions',
         component: () => import('../views/RolePermissions.vue'),

@@ -30,7 +30,7 @@ export function useDataOperations(endpoint) {
       }
 
       const response = await axios.get(`/${endpoint}`, { params });
-      
+      console.log('fetch query response',endpoint ,response);
       if (!response.data || !response.data.data) {
         throw new Error('Invalid response format');
       }

@@ -177,6 +177,9 @@
                                     <li v-if="hasAnyPermission(['advertisement.view', 'advertisement.create', 'advertisement.edit', 'advertisement.delete'])">
                                         <router-link to="/admin/advertisements" @click="toggleMobileMenu">Advertisements</router-link>
                                     </li>
+                                    <li v-if="hasAnyPermission(['advertisement.view', 'advertisement.create', 'advertisement.edit', 'advertisement.delete'])">
+                                        <router-link to="/admin/movies" @click="toggleMobileMenu">Movies</router-link>
+                                    </li>
                                 </ul>
                             </vue-collapsible>
                         </li>

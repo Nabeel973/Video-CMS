@@ -6,6 +6,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ReleaseController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AdvertisementController;
@@ -26,10 +27,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/auth/login', [App\Http\Controllers\Api\Auth\AuthController::class, 'login']);
-Route::post('/auth/register', [App\Http\Controllers\Api\Auth\AuthController::class, 'register']);
-Route::post('/auth/logout', [App\Http\Controllers\Api\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/auth/user', [App\Http\Controllers\Api\Auth\AuthController::class, 'user'])->middleware('auth:sanctum');
+Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/auth/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 
 // Protected API routes
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -62,23 +63,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
 
     // Users
-    Route::get('/users', [App\Http\Controllers\UserController::class, 'index']);
-    Route::post('/users', [App\Http\Controllers\UserController::class, 'store']);
-    Route::get('/users/{user}', [App\Http\Controllers\UserController::class, 'show']);
-    Route::put('/users/{user}', [App\Http\Controllers\UserController::class, 'update']);
-    Route::delete('/users/{user}', [App\Http\Controllers\UserController::class, 'destroy']);
-    Route::get('/users/roles/available', [App\Http\Controllers\UserController::class, 'getRoles']);
-    Route::get('/users/stats/dashboard', [App\Http\Controllers\UserController::class, 'getStats']);
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    Route::get('/users/roles/available', [UserController::class, 'getRoles']);
+    Route::get('/users/stats/dashboard', [UserController::class, 'getStats']);
 
-    Route::get('/roles', [App\Http\Controllers\RoleController::class, 'index']);
-    Route::post('/roles', [App\Http\Controllers\RoleController::class, 'store']);
-    Route::get('/roles/{role}', [App\Http\Controllers\RoleController::class, 'show']);
-    Route::put('/roles/{role}', [App\Http\Controllers\RoleController::class, 'update']);
-    Route::delete('/roles/{role}', [App\Http\Controllers\RoleController::class, 'destroy']);
+    Route::get('/roles', [RoleController::class, 'index']);
+    Route::post('/roles', [RoleController::class, 'store']);
+    Route::get('/roles/{role}', [RoleController::class, 'show']);
+    Route::put('/roles/{role}', [RoleController::class, 'update']);
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy']);
     
-    Route::get('/permissions', [App\Http\Controllers\RoleController::class, 'getAllPermissions']);
-    Route::post('/roles/{role}/permissions', [App\Http\Controllers\RoleController::class, 'assignPermissions']);
-    Route::get('/roles/{role}/permissions', [App\Http\Controllers\RoleController::class, 'getRolePermissions']);
+    Route::get('/permissions', [RoleController::class, 'getAllPermissions']);
+    Route::post('/roles/{role}/permissions', [RoleController::class, 'assignPermissions']);
+    Route::get('/roles/{role}/permissions', [RoleController::class, 'getRolePermissions']);
 
 
     // Advertisements
@@ -87,6 +88,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/advertisements/{advertisement}', [AdvertisementController::class, 'show']);
     Route::put('/advertisements/{advertisement}', [AdvertisementController::class, 'update']);
     Route::delete('/advertisements/{advertisement}', [AdvertisementController::class, 'destroy']);
+
+    // Movies
+    Route::get('/movies', [MovieController::class, 'list']);
+    Route::post('/movies/save', [MovieController::class, 'store']);
+    Route::get('/movies/{movie}', [MovieController::class, 'show']);
+    Route::put('/movies/{movies}', [MovieController::class, 'update']);
+    Route::delete('/movies/{movies}', [MovieController::class, 'destroy']);
+
+
 });
 
 
