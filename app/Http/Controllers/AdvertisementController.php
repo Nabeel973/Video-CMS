@@ -14,6 +14,11 @@ class AdvertisementController extends Controller
 
     public function __construct(AdvertisementService $advertisementService)
     {
+        $this->middleware('auth:api');
+        $this->middleware('permission:advertisement.view', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:advertisement.create', ['only' => ['store']]);
+        $this->middleware('permission:advertisement.edit', ['only' => ['update']]);
+        $this->middleware('permission:advertisement.delete', ['only' => ['destroy']]);
         $this->advertisementService = $advertisementService;
     }
 

@@ -82,6 +82,7 @@
             :isOwnRole="isOwnRole"
             :endpoint="endpoint"
             :formFields="formFields"
+            :size="modalSize" 
             @close="closeModal"
             @submit="handleModalSubmit"
             @update:formData="updateFormData"
@@ -137,7 +138,7 @@ const props = defineProps({
 const { getColumnsForEndpoint, transformRowData } = useTableConfig();
 const { rows, totalRows, fetchData, fetchItem, deleteItem } = useDataOperations(props.endpoint);
 const { exportToCSV, exportToExcel, exportToPDF } = useExport();
-const { getFormFields, getInitialFormData } = useFormConfig();
+const { getFormFields, getInitialFormData, fetchGenres, fetchCategories, fetchTags, fetchReleases } = useFormConfig();
 const { currentUser, fetchCurrentUser } = useCurrentUser();
 const { search, handleSearch } = useSearch((query) => loadData(query));
 
@@ -309,7 +310,31 @@ const handleExportPDF = async () => {
 onMounted(async () => {
     initializeConfiguration();
     await fetchCurrentUser();
+    
+    // Fetch dynamic data for movies endpoint
+    if (props.endpoint === 'movies') {
+        await Promise.all([
+            fetchGenres(),
+            fetchCategories(),
+            fetchTags(),
+            fetchReleases()
+        ]);
+    }
+    
     await loadData();
 });
+
+// Modal size mapping per endpoint
+const modalSizeConfig = {
+  movies: "xl",
+//   users: "md",
+//   roles: "sm",
+  advertisements: "md",
+};
+
+// Computed modal size
+const modalSize = computed(() => modalSizeConfig[props.endpoint] || "sm");
+
+
 </script>
 

@@ -64,12 +64,25 @@ class MovieService
     {
         $rules = [
             'name' => 'required|string|max:255',
-            // 'status' => 'required|in:active,inactive',
+            'tags' => 'nullable|array',
+            'genre_id' => 'required|exists:genres,id',
+            'release_id' => 'required|exists:releases,id',
+            'release_date' => 'nullable|date',
+            'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'video_link' => 'nullable|string|url|max:500',
+            'video_file' => 'nullable|file|mimes:mp4,mov,avi,wmv|max:512000',
+            'category_id' => 'required|exists:categories,id',
+            'detail' => 'nullable|string',
+            'cast_info' => 'nullable|array',
+            'status' => 'required|in:active,inactive',
         ];
 
         // If we have an ID, it's an update, so exclude current record from unique check
         if (isset($data['id'])) {
             $rules['name'] .= '|unique:Movies,name,' . $data['id'] . ',id,deleted_at,NULL';
+            // Make files not required on update
+            $rules['image'] = 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:10240';
+            $rules['video_file'] = 'nullable|file|mimes:mp4,mov,avi,wmv|max:512000';
         } else {
             $rules['name'] .= '|unique:Movies,name,NULL,id,deleted_at,NULL';
         }

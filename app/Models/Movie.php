@@ -14,6 +14,13 @@ class Movie extends Model
 
     protected $fillable = [
         'name',
+        'genre_id',
+        'release_id',
+        'category_id',
+        'image',
+        'video_link',
+        'video_file',
+        'detail',
         'status',
         'created_by',
         'updated_by'
@@ -34,5 +41,34 @@ class Movie extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
-      
+
+    public function movieTags()
+    {
+        return $this->hasMany(MovieTag::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'movie_tags');
+    }
+
+    public function movieCasts()
+    {
+        return $this->hasMany(MovieCast::class);
+    }
+
+    public function genre()
+    {
+        return $this->belongsTo(Genre::class);
+    }
+
+    public function release()
+    {
+        return $this->belongsTo(Release::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 }

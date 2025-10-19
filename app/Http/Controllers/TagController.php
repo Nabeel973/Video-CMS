@@ -14,10 +14,10 @@ class TagController extends Controller
     public function __construct(TagService $tagService)
     {
         $this->middleware('auth:api');
-        $this->middleware('permission:user.view', ['only' => ['index', 'show']]);
-        $this->middleware('permission:user.create', ['only' => ['store']]);
-        $this->middleware('permission:user.edit', ['only' => ['update']]);
-        $this->middleware('permission:user.delete', ['only' => ['destroy']]);
+        $this->middleware('permission:tag.view', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:tag.create', ['only' => ['store']]);
+        $this->middleware('permission:tag.edit', ['only' => ['update']]);
+        $this->middleware('permission:tag.delete', ['only' => ['destroy']]);
         $this->tagService = $tagService;
     }
 

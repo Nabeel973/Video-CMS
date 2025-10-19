@@ -91,10 +91,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Movies
     Route::get('/movies', [MovieController::class, 'list']);
-    Route::post('/movies/save', [MovieController::class, 'store']);
-    Route::get('/movies/{movie}', [MovieController::class, 'show']);
-    Route::put('/movies/{movies}', [MovieController::class, 'update']);
-    Route::delete('/movies/{movies}', [MovieController::class, 'destroy']);
+    Route::post('/movies', [MovieController::class, 'store']);
+    Route::get('/movies/{id}', [MovieController::class, 'show']);
+    Route::put('/movies/{id}', [MovieController::class, 'update']);
+    Route::delete('/movies/{id}', [MovieController::class, 'destroy']);
 
 
 });

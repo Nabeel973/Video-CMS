@@ -14,16 +14,23 @@ return new class extends Migration
         Schema::create('movies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('genre_id');
-            $table->integer('release_id');
-            $table->integer('category_id');
+            $table->unsignedBigInteger('genre_id');
+            $table->unsignedBigInteger('release_id');
+            $table->unsignedBigInteger('category_id');
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('image')->nullable();
             $table->text('video_link')->nullable();
+            $table->string('video_file')->nullable();
             $table->text('details')->nullable();
             $table->integer('created_by');
             $table->integer('updated_by')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
+            
+            // Foreign keys
+            $table->foreign('genre_id')->references('id')->on('genres')->onDelete('cascade');
+            $table->foreign('release_id')->references('id')->on('releases')->onDelete('cascade');
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
         });
     }
 

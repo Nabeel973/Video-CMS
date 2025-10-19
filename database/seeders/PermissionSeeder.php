@@ -63,6 +63,18 @@ class PermissionSeeder extends Seeder
                 'release.edit' => 'Edit releases',
                 'release.delete' => 'Delete releases',
             ],
+            'movie-management' => [
+                'movie.view' => 'View movies',
+                'movie.create' => 'Create movies',
+                'movie.edit' => 'Edit movies',
+                'movie.delete' => 'Delete movies',
+            ],
+            'advertisement-management' => [
+                'advertisement.view' => 'View advertisements',
+                'advertisement.create' => 'Create advertisements',
+                'advertisement.edit' => 'Edit advertisements',
+                'advertisement.delete' => 'Delete advertisements',
+            ],
         ];
 
         // Create permissions and assign to roles

@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class MovieCast extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'movie_id',
+        'info',
+        'image'
+    ];
+
+    public function movie()
+    {
+        return $this->belongsTo(Movie::class);
+    }
 }

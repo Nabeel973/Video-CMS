@@ -14,10 +14,10 @@ class GenreController extends Controller
     public function __construct(GenreService $genreService)
     {
         $this->middleware('auth:api');
-        $this->middleware('permission:user.view', ['only' => ['index', 'show']]);
-        $this->middleware('permission:user.create', ['only' => ['store']]);
-        $this->middleware('permission:user.edit', ['only' => ['update']]);
-        $this->middleware('permission:user.delete', ['only' => ['destroy']]);
+        $this->middleware('permission:genre.view', ['only' => ['index', 'show', 'list']]);
+        $this->middleware('permission:genre.create', ['only' => ['store']]);
+        $this->middleware('permission:genre.edit', ['only' => ['update']]);
+        $this->middleware('permission:genre.delete', ['only' => ['destroy']]);
         $this->genreService = $genreService;
     }
 

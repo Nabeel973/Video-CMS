@@ -1,8 +1,8 @@
 <template>
-    <div class="fixed inset-0 bg-black/60 z-[999] hidden" :class="isOpen && '!block'">
-        <div class="flex items-center justify-center min-h-screen px-4" @click.self="closeModal">
-            <div class="panel border-0 p-0 rounded-lg overflow-hidden w-full max-w-lg">
-                <div class="flex bg-[#fbfbfb] dark:bg-[#121c2c] items-center justify-between px-5 py-3">
+    <div class="fixed inset-0 bg-black/60 z-[999] hidden overflow-y-auto" :class="isOpen && '!block'" >
+        <div class="flex items-center justify-center min-h-screen px-4 py-8" @click.self="closeModal">
+            <div :class="['panel border-0 p-0 rounded-lg overflow-hidden w-full my-8', modalSizeClass]">
+                <div class="flex bg-[#fbfbfb] dark:bg-[#121c2c] items-center justify-between px-5 py-3 sticky top-0 z-10">
                     <h5 class="font-bold text-lg">{{ modalTitle }}</h5>
                     <button type="button" class="hover:opacity-80" @click="closeModal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -12,23 +12,27 @@
                     </button>
                 </div>
 
-                <div class="p-5">
+                <div class="p-5 max-h-[calc(100vh-200px)] overflow-y-auto">
                     <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
-                        <!-- Dynamic Form Fields -->
-                        <template v-for="field in visibleFields" :key="field.name">
-                            <component 
-                                :is="getFieldComponent(field.type)"
-                                :field="field"
-                                :modelValue="localFormData[field.name]"
-                                :error="errors[field.name]"
-                                :disabled="isFieldDisabled(field)"
-                                :options="getFieldOptions(field)"
-                                @update:modelValue="updateField(field.name, $event)"
-                            />
-                        </template>
+                        <!-- Dynamic Form Fields with Grid Layout for Movies -->
+                        <div :class="endpoint === 'movies' ? 'grid grid-cols-12 gap-4' : ''">
+                            <template v-for="field in visibleFields" :key="field.name">
+                                <div :class="endpoint === 'movies' && field.gridColumn ? field.gridColumn : 'col-span-12'">
+                                    <component 
+                                        :is="getFieldComponent(field.type)"
+                                        :field="field"
+                                        :modelValue="localFormData[field.name]"
+                                        :error="errors[field.name]"
+                                        :disabled="isFieldDisabled(field)"
+                                        :options="getFieldOptions(field)"
+                                        @update:modelValue="updateField(field.name, $event)"
+                                    />
+                                </div>
+                            </template>
+                        </div>
 
                         <!-- Action Buttons -->
-                        <div class="flex justify-end items-center mt-8">
+                        <div class="flex justify-end items-center mt-8 pt-5 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-[#0e1726] -mx-5 px-5 -mb-5 pb-5">
                             <button type="button" class="btn btn-outline-danger ltr:mr-3 rtl:ml-3" @click="closeModal">
                                 Cancel
                             </button>
@@ -44,14 +48,16 @@
 </template>
 
 <script setup>
-import { computed, watch, ref, onMounted, reactive } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import FormInput from './form/FormInput.vue';
-import FormSelect from './form/FormSelect.vue';
-import FormTextarea from './form/FormTextarea.vue';
-import FormSwitch from './form/FormSwitch.vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import DynamicCastTable from './form/DynamicCastTable.vue';
 import FormFile from './form/FormFile.vue';
+import FormInput from './form/FormInput.vue';
+import FormMultiSelect from './form/FormMultiSelect.vue';
+import FormSelect from './form/FormSelect.vue';
+import FormSwitch from './form/FormSwitch.vue';
+import FormTextarea from './form/FormTextarea.vue';
 
 const props = defineProps({
     isOpen: {
@@ -89,6 +95,20 @@ const props = defineProps({
     formFields: {
         type: Array,
         default: () => []
+    },
+    size: { 
+        type: String, 
+        default: "sm" 
+    } // sm | md | lg | xl
+});
+
+const modalSizeClass = computed(() => {
+    console.log('modalSizeClass' , props.size);
+    switch (props.size) {
+        case "sm": return "max-w-md";
+        case "lg": return "max-w-4xl";
+        case "xl": return "max-w-6xl";
+        default: return "max-w-md";
     }
 });
 
@@ -137,6 +157,21 @@ const handleSubmit = async () => {
             if (localFormData[key] !== null && localFormData[key] !== undefined) {
                 if (localFormData[key] instanceof File) {
                     formData.append(key, localFormData[key]);
+                } else if (key === 'cast_info' && Array.isArray(localFormData[key])) {
+                    // Handle cast info with images
+                    localFormData[key].forEach((cast, index) => {
+                        formData.append(`cast_info[${index}][name]`, cast.name || '');
+                        if (cast.image instanceof File) {
+                            formData.append(`cast_info[${index}][image]`, cast.image);
+                        } else if (cast.image && typeof cast.image === 'string') {
+                            formData.append(`cast_info[${index}][existing_image]`, cast.image);
+                        }
+                    });
+                } else if (Array.isArray(localFormData[key])) {
+                    // Handle arrays (like tags)
+                    localFormData[key].forEach((item, index) => {
+                        formData.append(`${key}[${index}]`, item);
+                    });
                 } else {
                     formData.append(key, localFormData[key]);
                 }
@@ -169,7 +204,14 @@ const handleSubmit = async () => {
             });
         }
     } catch (error) {
-        console.error('Form submission error:', error.response?.data);
+        // console.error('Form submission error:', error.response?.data);
+            
+            Swal.fire({
+                title: 'Error!',
+                text: error.response?.data?.error,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         // Let parent handle errors by emitting them
         emit('submit', { error: error.response?.data || error });
     }
@@ -208,6 +250,8 @@ const getFieldComponent = (type) => {
         'textarea': FormTextarea,
         'switch': FormSwitch,
         'file': FormFile,
+        'multiselect': FormMultiSelect,
+        'cast_table': DynamicCastTable,
     };
     return componentMap[type] || FormInput;
 };
@@ -222,6 +266,10 @@ const isFieldDisabled = (field) => {
 const getFieldOptions = (field) => {
     if (field.name === 'role_id') {
         return availableRoles.value.filter(role => role.status === 'active');
+    }
+    // For dynamic fields, return the reactive options
+    if (field.dynamic && field.options) {
+        return field.options;
     }
     return field.options || [];
 };

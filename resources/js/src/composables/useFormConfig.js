@@ -1,6 +1,73 @@
-import { computed } from 'vue';
+import axios from 'axios';
+import { ref } from 'vue';
 
 export function useFormConfig() {
+  // Reactive state for dynamic options
+  const genres = ref([]);
+  const categories = ref([]);
+  const tags = ref([]);
+  const releases = ref([]);
+
+  // Fetch genres from API
+  const fetchGenres = async () => {
+    try {
+      const response = await axios.get('/genres');
+      if (response.data && response.data.data) {
+        genres.value = response.data.data.map(genre => ({
+          value: genre.id,
+          label: genre.name
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+    }
+  };
+
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get('/categories');
+      if (response.data && response.data.data) {
+        categories.value = response.data.data.map(category => ({
+          value: category.id,
+          label: category.name
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  // Fetch tags from API
+  const fetchTags = async () => {
+    try {
+      const response = await axios.get('/tags');
+      if (response.data && response.data.data) {
+        tags.value = response.data.data.map(tag => ({
+          value: tag.id,
+          label: tag.name
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+  };
+
+  // Fetch releases from API
+  const fetchReleases = async () => {
+    try {
+      const response = await axios.get('/releases');
+      if (response.data && response.data.data) {
+        releases.value = response.data.data.map(release => ({
+          value: release.id,
+          label: release.name
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching releases:', error);
+    }
+  };
+
   const getFormFields = (endpoint, isEdit = false) => {
     const commonFields = [
       {
@@ -125,6 +192,114 @@ export function useFormConfig() {
           required: true
         },
       ],
+      movies: [
+        {
+          name: 'name',
+          type: 'text',
+          label: 'Name',
+          placeholder: 'Enter movie name',
+          required: true,
+          gridColumn: 'md:col-span-4'
+        },
+        {
+          name: 'tags',
+          type: 'multiselect',
+          label: 'Tags',
+          placeholder: 'Select tags',
+          required: false,
+          gridColumn: 'md:col-span-4',
+          options: tags.value,
+          dynamic: true
+        },
+        {
+          name: 'genre_id',
+          type: 'select',
+          label: 'Genre',
+          placeholder: 'Select genre',
+          required: true,
+          gridColumn: 'md:col-span-4',
+          options: genres.value,
+          dynamic: true
+        },
+        {
+          name: 'release_id',
+          type: 'select',
+          label: 'Release',
+          placeholder: 'Select release',
+          required: true,
+          gridColumn: 'md:col-span-4',
+          options: releases.value,
+          dynamic: true
+        },
+        // {
+        //   name: 'release_date',
+        //   type: 'text',
+        //   label: 'Release Date',
+        //   placeholder: 'YYYY-MM-DD',
+        //   required: false,
+        //   gridColumn: 'md:col-span-4'
+        // },
+        {
+          name: 'category_id',
+          type: 'select',
+          label: 'Category',
+          placeholder: 'Select category',
+          required: true,
+          gridColumn: 'md:col-span-4',
+          options: categories.value,
+          dynamic: true
+        },
+        {
+          name: 'video_link',
+          type: 'text',
+          label: 'Video Link',
+          placeholder: 'Enter video link (optional)',
+          required: false,
+          gridColumn: 'md:col-span-4'
+        },
+        {
+          name: 'status',
+          type: 'select',
+          label: 'Status',
+          options: [
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' }
+          ],
+          required: true,
+          gridColumn: 'md:col-span-4'
+        },
+        {
+          name: 'details',
+          type: 'textarea',
+          label: 'Details',
+          placeholder: 'Enter movie details',
+          required: false,
+          gridColumn: 'md:col-span-8'
+        },
+        {
+          name: 'image',
+          type: 'file',
+          label: 'Image for Video',
+          accept: 'image/*',
+          required: false,
+          gridColumn: 'md:col-span-6'
+        },
+        {
+          name: 'video_file',
+          type: 'file',
+          label: 'Upload Video',
+          accept: 'video/*',
+          required: false,
+          gridColumn: 'md:col-span-6'
+        },
+        {
+          name: 'cast_info',
+          type: 'cast_table',
+          label: 'Add Cast Info Section',
+          required: false,
+          gridColumn: 'md:col-span-12'
+        }
+      ],
       // Add more endpoints as needed
     };
 
@@ -155,6 +330,21 @@ export function useFormConfig() {
         image: null,
         status: 'active'
       },
+      movies: {
+        id: null,
+        name: '',
+        tags: [],
+        genre_id: '',
+        release_id: '',
+        release_date: '',
+        image: null,
+        video_link: '',
+        video_file: null,
+        category_id: '',
+        details: '',
+        cast_info: [],
+        status: 'active'
+      },
       // Add more endpoints as needed
     };
 
@@ -164,5 +354,13 @@ export function useFormConfig() {
   return {
     getFormFields,
     getInitialFormData,
+    fetchGenres,
+    fetchCategories,
+    fetchTags,
+    fetchReleases,
+    genres,
+    categories,
+    tags,
+    releases
   };
 }
