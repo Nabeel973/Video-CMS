@@ -9,6 +9,7 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AdvertisementController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\Auth\AuthController;
 
 /*
@@ -33,6 +34,9 @@ Route::get('/auth/user', [AuthController::class, 'user'])->middleware('auth:sanc
 
 // Protected API routes
 Route::middleware(['auth:sanctum'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+
     // Genres - using apiResource with list method override
     Route::get('/genres', [GenreController::class, 'list']);
     Route::apiResource('genres', GenreController::class)->except(['index']);

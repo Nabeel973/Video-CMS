@@ -35,11 +35,10 @@
                     <ul class="relative font-semibold space-y-0.5 p-4 py-0">
                         <!-- Dashboard Section - Always visible -->
                         <li class="menu nav-item">
-                            <button
-                                type="button"
+                            <router-link
+                                to="/dashboard"
                                 class="nav-link group w-full"
-                                :class="{ active: activeDropdown === 'dashboard' }"
-                                @click="activeDropdown === 'dashboard' ? (activeDropdown = null) : (activeDropdown = 'dashboard')"
+                                @click="toggleMobileMenu"
                             >
                                 <div class="flex items-center">
                                     <svg
@@ -62,7 +61,7 @@
                                     </svg>
                                     <span class="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{{ $t('dashboard') }}</span>
                                 </div>
-                            </button>
+                            </router-link>
                         </li>
 
                         <!-- Users Section - Only visible with appropriate permissions -->

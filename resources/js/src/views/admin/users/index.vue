@@ -1,7 +1,7 @@
 <template>
     <DataTableCrud
         title="Users"
-        singularTitle="User"
+        singularTitle="User" 
         endpoint="users"
         tableId="usersTable"
     >

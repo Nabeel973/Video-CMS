@@ -10,6 +10,11 @@ import HomeView from '../views/index.vue';
 
 const routes: RouteRecordRaw[] = [
     // dashboard
+    { 
+        path: '/dashboard', 
+        name: 'dashboard', 
+        component: () => import(/* webpackChunkName: "dashboard" */ '../views/dashboard/index.vue'),
+    },
     { path: '/', name: 'home', component: HomeView },
      // authentication
 
@@ -55,38 +60,32 @@ const routes: RouteRecordRaw[] = [
         path: '/admin/tags',
         name: 'admin-tags',
         component: () => import(/* webpackChunkName: "admin-tags" */ '../views/admin/tags/index.vue'),
-        meta: { layout: 'auth' },
     },
     {
         path: '/admin/genres',
         name: 'admin-genres',
         component: () => import(/* webpackChunkName: "admin-tags" */ '../views/admin/genres/index.vue'),
-        meta: { layout: 'auth' },
     },
     {
         path: '/admin/categories',
         name: 'admin-categories',
         component: () => import(/* webpackChunkName: "admin-tags" */ '../views/admin/categories/index.vue'),
-        meta: { layout: 'auth' },
     },
     // Add new route for roles management
     {
         path: '/admin/roles',
         name: 'admin-roles',
         component: () => import(/* webpackChunkName: "admin-roles" */ '../views/admin/roles/index.vue'),
-        meta: { layout: 'auth' },
     },
     {
         path: '/admin/advertisements',
         name: 'admin-advertisements',
         component: () => import(/* webpackChunkName: "admin-roles" */ '../views/admin/advertisements/index.vue'),
-        meta: { layout: 'auth' },
     },
     {
         path: '/admin/movies',
         name: 'admin-movies',
         component: () => import(/* webpackChunkName: "admin-roles" */ '../views/admin/movies/index.vue'),
-        meta: { layout: 'auth' },
     },
     {
         path: '/roles/:id/permissions',
@@ -118,11 +117,20 @@ router.beforeEach(async (to, from, next) => {
     const publicPages = ['/auth/boxed-signin', '/auth/boxed-signup'];
     const authRequired = !publicPages.includes(to.path);
 
+    // Redirect authenticated users from home to dashboard
+    if (to.path === '/' && authStore.isLoggedIn) {
+        return next('/dashboard');
+    }
+
     if (authRequired && !authStore.isLoggedIn) {
         // If there's a token, try to fetch the user
         if (authStore.token) {
             await authStore.fetchUser();
             if (authStore.isLoggedIn) {
+                // If user was trying to access home, redirect to dashboard
+                if (to.path === '/') {
+                    return next('/dashboard');
+                }
                 return next();
             }
         }

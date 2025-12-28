@@ -327,7 +327,7 @@ import { useRouter } from 'vue-router';
         const result = await authStore.login(form.email, form.password);
         
         if (result.success) {
-            router.push('/');
+            router.push('/dashboard');
         } else {
             error.value = result.error;
             
