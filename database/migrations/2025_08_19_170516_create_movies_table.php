@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('genre_id');
-            $table->unsignedBigInteger('release_id');
+            $table->string('release');
             $table->unsignedBigInteger('category_id');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('image')->nullable();
@@ -29,7 +29,6 @@ return new class extends Migration
             
             // Foreign keys
             $table->foreign('genre_id')->references('id')->on('genres')->onDelete('cascade');
-            $table->foreign('release_id')->references('id')->on('releases')->onDelete('cascade');
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
         });
     }

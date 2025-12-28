@@ -15,12 +15,12 @@ class Movie extends Model
     protected $fillable = [
         'name',
         'genre_id',
-        'release_id',
+        'release',
         'category_id',
         'image',
         'video_link',
         'video_file',
-        'detail',
+        'details',
         'status',
         'created_by',
         'updated_by'
@@ -60,11 +60,6 @@ class Movie extends Model
     public function genre()
     {
         return $this->belongsTo(Genre::class);
-    }
-
-    public function release()
-    {
-        return $this->belongsTo(Release::class);
     }
 
     public function category()

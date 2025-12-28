@@ -3,7 +3,6 @@
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ReleaseController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,9 +25,6 @@ use Illuminate\Support\Facades\Route;
         
 //         // Categories
 //         Route::get('/categories', [CategoryController::class, 'index'])->name('admin.categories.index');
-        
-//         // Releases
-//         Route::get('/releases', [ReleaseController::class, 'index'])->name('admin.releases.index');
         
 //         // Tags
 //         Route::get('/tags', [TagController::class, 'index'])->name('admin.tags.index');

@@ -6,7 +6,6 @@ export function useFormConfig() {
   const genres = ref([]);
   const categories = ref([]);
   const tags = ref([]);
-  const releases = ref([]);
 
   // Fetch genres from API
   const fetchGenres = async () => {
@@ -53,19 +52,18 @@ export function useFormConfig() {
     }
   };
 
-  // Fetch releases from API
-  const fetchReleases = async () => {
-    try {
-      const response = await axios.get('/releases');
-      if (response.data && response.data.data) {
-        releases.value = response.data.data.map(release => ({
-          value: release.id,
-          label: release.name
-        }));
-      }
-    } catch (error) {
-      console.error('Error fetching releases:', error);
+  // Generate release years for dropdown
+  const getReleaseYears = () => {
+    const currentYear = new Date().getFullYear();
+    const startYear = 1900;
+    const endYear = currentYear + 5; // Include 5 years ahead
+    const years = [];
+    
+    for (let year = endYear; year >= startYear; year--) {
+      years.push({ value: year.toString(), label: year.toString() });
     }
+    
+    return years;
   };
 
   const getFormFields = (endpoint, isEdit = false) => {
@@ -222,23 +220,14 @@ export function useFormConfig() {
           dynamic: true
         },
         {
-          name: 'release_id',
+          name: 'release',
           type: 'select',
           label: 'Release',
-          placeholder: 'Select release',
+          placeholder: 'Select release year',
           required: true,
           gridColumn: 'md:col-span-4',
-          options: releases.value,
-          dynamic: true
+          options: getReleaseYears()
         },
-        // {
-        //   name: 'release_date',
-        //   type: 'text',
-        //   label: 'Release Date',
-        //   placeholder: 'YYYY-MM-DD',
-        //   required: false,
-        //   gridColumn: 'md:col-span-4'
-        // },
         {
           name: 'category_id',
           type: 'select',
@@ -335,8 +324,7 @@ export function useFormConfig() {
         name: '',
         tags: [],
         genre_id: '',
-        release_id: '',
-        release_date: '',
+        release: '',
         image: null,
         video_link: '',
         video_file: null,
@@ -357,10 +345,8 @@ export function useFormConfig() {
     fetchGenres,
     fetchCategories,
     fetchTags,
-    fetchReleases,
     genres,
     categories,
-    tags,
-    releases
+    tags
   };
 }

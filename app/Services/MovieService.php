@@ -11,12 +11,22 @@ class MovieService
 {
     public function getAll(): Collection
     {
-        return Movie::with(['createdBy:id,name', 'updatedBy:id,name'])->get();
+        return Movie::with([
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'tags:id,name',
+            'movieCasts:id,movie_id,info,image'
+        ])->get();
     }
 
     public function getPaginated(int $perPage = 10, ?string $search = null): LengthAwarePaginator
     {
-        $query = Movie::with(['createdBy:id,name', 'updatedBy:id,name']);
+        $query = Movie::with([
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'tags:id,name',
+            'movieCasts:id,movie_id,info,image'
+        ]);
 
         // Add search functionality
         if (!empty($search)) {
@@ -57,32 +67,45 @@ class MovieService
 
     public function findById(int $id): ?Movie
     {
-        return Movie::with(['createdBy:id,name', 'updatedBy:id,name'])->find($id);
+        return Movie::with([
+            'createdBy:id,name',
+            'updatedBy:id,name',
+            'tags:id,name',
+            'movieCasts:id,movie_id,info,image'
+        ])->find($id);
     }
 
-    public function validateData(array $data): array
+    public function validateData(array $data, $request = null): array
     {
         $rules = [
             'name' => 'required|string|max:255',
             'tags' => 'nullable|array',
             'genre_id' => 'required|exists:genres,id',
-            'release_id' => 'required|exists:releases,id',
-            'release_date' => 'nullable|date',
-            'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'release' => 'required|string|max:255',
             'video_link' => 'nullable|string|url|max:500',
-            'video_file' => 'nullable|file|mimes:mp4,mov,avi,wmv|max:512000',
             'category_id' => 'required|exists:categories,id',
-            'detail' => 'nullable|string',
+            'details' => 'nullable|string',
             'cast_info' => 'nullable|array',
             'status' => 'required|in:active,inactive',
         ];
 
+        // File validation rules - only apply when files are actually being uploaded
+        $hasImageFile = $request && $request->hasFile('image');
+        $hasVideoFile = $request && $request->hasFile('video_file');
+        
+        if ($hasImageFile) {
+            $rules['image'] = 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:10240';
+        }
+        // If no image file is being uploaded, don't validate image field (allow existing path to pass through)
+        
+        if ($hasVideoFile) {
+            $rules['video_file'] = 'nullable|file|mimes:mp4,mov,avi,wmv|max:512000';
+        }
+        // If no video file is being uploaded, don't validate video_file field (allow existing path to pass through)
+
         // If we have an ID, it's an update, so exclude current record from unique check
         if (isset($data['id'])) {
             $rules['name'] .= '|unique:Movies,name,' . $data['id'] . ',id,deleted_at,NULL';
-            // Make files not required on update
-            $rules['image'] = 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:10240';
-            $rules['video_file'] = 'nullable|file|mimes:mp4,mov,avi,wmv|max:512000';
         } else {
             $rules['name'] .= '|unique:Movies,name,NULL,id,deleted_at,NULL';
         }

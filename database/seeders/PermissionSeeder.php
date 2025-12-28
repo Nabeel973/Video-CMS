@@ -57,12 +57,6 @@ class PermissionSeeder extends Seeder
                 'genre.edit' => 'Edit genres',
                 'genre.delete' => 'Delete genres',
             ],
-            'release-management' => [
-                'release.view' => 'View releases',
-                'release.create' => 'Create releases',
-                'release.edit' => 'Edit releases',
-                'release.delete' => 'Delete releases',
-            ],
             'movie-management' => [
                 'movie.view' => 'View movies',
                 'movie.create' => 'Create movies',

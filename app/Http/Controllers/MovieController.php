@@ -47,7 +47,7 @@ class MovieController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            $validatedData = $this->movieService->validateData($request->all());
+            $validatedData = $this->movieService->validateData($request->all(), $request);
             
             // Handle file uploads
             if ($request->hasFile('image')) {
@@ -127,20 +127,25 @@ class MovieController extends Controller
                 ], 404);
             }
 
-            // Load relationships
-            $movie->load(['tags', 'movieCasts']);
+            // Load relationships (already loaded by service, but ensure they're available)
+            if (!$movie->relationLoaded('tags')) {
+                $movie->load('tags');
+            }
+            if (!$movie->relationLoaded('movieCasts')) {
+                $movie->load('movieCasts');
+            }
             
             // Format tags for frontend (array of IDs)
-            $movie->tag_ids = $movie->tags->pluck('id')->toArray();
+            $movie->tag_ids = $movie->tags ? $movie->tags->pluck('id')->toArray() : [];
             
             // Format cast info for frontend
-            $movie->cast_info = $movie->movieCasts->map(function($cast) {
+            $movie->cast_info = $movie->movieCasts ? $movie->movieCasts->map(function($cast) {
                 return [
-                    'name' => $cast->info,
-                    'image' => $cast->image,
-                    'existing_image' => $cast->image
+                    'name' => $cast->info ?? '',
+                    'image' => $cast->image ?? '',
+                    'existing_image' => $cast->image ?? ''
                 ];
-            })->toArray();
+            })->toArray() : [];
             
             return response()->json([
                 'data' => $movie
@@ -163,7 +168,7 @@ class MovieController extends Controller
                 ], 404);
             }
 
-            $validatedData = $this->movieService->validateData(array_merge($request->all(), ['id' => $id]));
+            $validatedData = $this->movieService->validateData(array_merge($request->all(), ['id' => $id]), $request);
             
             // Handle file uploads
             if ($request->hasFile('image')) {
@@ -192,6 +197,17 @@ class MovieController extends Controller
             $tags = $validatedData['tags'] ?? [];
             $castInfo = $request->input('cast_info', []);
             unset($validatedData['tags'], $validatedData['cast_info']);
+
+            // Preserve existing image and video_file if no new files were uploaded
+            if (!$request->hasFile('image') && !isset($validatedData['image'])) {
+                // Keep existing image - don't update it
+                unset($validatedData['image']);
+            }
+            
+            if (!$request->hasFile('video_file') && !isset($validatedData['video_file'])) {
+                // Keep existing video_file - don't update it
+                unset($validatedData['video_file']);
+            }
 
             // Update the movie
             $this->movieService->update($movie, $validatedData);

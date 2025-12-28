@@ -138,7 +138,7 @@ const props = defineProps({
 const { getColumnsForEndpoint, transformRowData } = useTableConfig();
 const { rows, totalRows, fetchData, fetchItem, deleteItem } = useDataOperations(props.endpoint);
 const { exportToCSV, exportToExcel, exportToPDF } = useExport();
-const { getFormFields, getInitialFormData, fetchGenres, fetchCategories, fetchTags, fetchReleases } = useFormConfig();
+const { getFormFields, getInitialFormData, fetchGenres, fetchCategories, fetchTags } = useFormConfig();
 const { currentUser, fetchCurrentUser } = useCurrentUser();
 const { search, handleSearch } = useSearch((query) => loadData(query));
 
@@ -214,6 +214,34 @@ const openModal = async (itemData = null) => {
     if (itemData) {
         const data = typeof itemData === 'object' ? itemData : await fetchItem(itemData);
         if (data) {
+            // Handle movies-specific data mapping first
+            if (props.endpoint === 'movies') {
+                // Map tag_ids from backend to tags for frontend
+                if (data.tag_ids) {
+                    form.tags = data.tag_ids;
+                } else if (data.tags) {
+                    // If tags is an array of objects, extract IDs
+                    form.tags = Array.isArray(data.tags) 
+                        ? data.tags.map(tag => typeof tag === 'object' ? tag.id : tag)
+                        : [];
+                }
+                
+                // Handle cast_info - check both cast_info (formatted) and movie_casts (raw relationship)
+                if (data.cast_info && Array.isArray(data.cast_info)) {
+                    // Use formatted cast_info if available
+                    form.cast_info = data.cast_info;
+                } else if (data.movie_casts && Array.isArray(data.movie_casts)) {
+                    // Map raw movie_casts to cast_info format expected by frontend
+                    form.cast_info = data.movie_casts.map(cast => ({
+                        name: cast.info || '',
+                        image: cast.image || '',
+                        existing_image: cast.image || ''
+                    }));
+                } else {
+                    form.cast_info = [];
+                }
+            }
+            
             Object.keys(form).forEach(key => {
                 if (key === 'role_id' && props.endpoint === 'users') {
                     form[key] = data.role_ids ? data.role_ids[0] : '';
@@ -234,8 +262,12 @@ const openModal = async (itemData = null) => {
                     });
                     form[key] = imageValue;
                 }
+                else if ((key === 'tags' || key === 'cast_info') && props.endpoint === 'movies') {
+                    // Already handled above, skip
+                    return;
+                }
                 else {
-                    form[key] = data[key] || form[key];
+                    form[key] = data[key] !== undefined ? data[key] : form[key];
                 }
             });
         }
@@ -316,8 +348,7 @@ onMounted(async () => {
         await Promise.all([
             fetchGenres(),
             fetchCategories(),
-            fetchTags(),
-            fetchReleases()
+            fetchTags()
         ]);
     }
     
