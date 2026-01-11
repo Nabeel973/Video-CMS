@@ -229,6 +229,22 @@ export function useFormConfig() {
           options: getReleaseYears()
         },
         {
+          name: 'rating',
+          type: 'number',
+          label: 'Rating',
+          placeholder: 'Enter rating (0.0 - 5.0)',
+          required: true,
+          gridColumn: 'md:col-span-4',
+          hint: 'Decimal value between 0.0 and 5.0'
+        },
+        {
+          name: 'duration',
+          type: 'duration',
+          label: 'Duration',
+          required: true,
+          gridColumn: 'md:col-span-4'
+        },
+        {
           name: 'category_id',
           type: 'select',
           label: 'Category',
@@ -239,12 +255,16 @@ export function useFormConfig() {
           dynamic: true
         },
         {
-          name: 'video_link',
-          type: 'text',
-          label: 'Video Link',
-          placeholder: 'Enter video link (optional)',
-          required: false,
-          gridColumn: 'md:col-span-4'
+          name: 'video_source',
+          type: 'select',
+          label: 'Video Source',
+          placeholder: 'Select video source',
+          required: true,
+          gridColumn: 'md:col-span-4',
+          options: [
+            { value: 'upload', label: 'Upload Video' },
+            { value: 'link', label: 'Add Link' }
+          ]
         },
         {
           name: 'status',
@@ -258,12 +278,24 @@ export function useFormConfig() {
           gridColumn: 'md:col-span-4'
         },
         {
+          name: 'video_link',
+          type: 'text',
+          label: 'Video Link',
+          placeholder: 'Enter video link (required)',
+          required: true,
+          gridColumn: 'md:col-span-6',
+          conditional: {
+            field: 'video_source',
+            value: 'link'
+          }
+        },
+        {
           name: 'details',
           type: 'textarea',
           label: 'Details',
           placeholder: 'Enter movie details',
           required: false,
-          gridColumn: 'md:col-span-8'
+          gridColumn: 'md:col-span-6'
         },
         {
           name: 'image',
@@ -271,7 +303,8 @@ export function useFormConfig() {
           label: 'Image for Video',
           accept: 'image/*',
           required: false,
-          gridColumn: 'md:col-span-6'
+          gridColumn: 'md:col-span-6',
+          compact: true
         },
         {
           name: 'video_file',
@@ -279,7 +312,12 @@ export function useFormConfig() {
           label: 'Upload Video',
           accept: 'video/*',
           required: false,
-          gridColumn: 'md:col-span-6'
+          gridColumn: 'md:col-span-6',
+          compact: true,
+          conditional: {
+            field: 'video_source',
+            value: 'upload'
+          }
         },
         {
           name: 'cast_info',
@@ -325,6 +363,9 @@ export function useFormConfig() {
         tags: [],
         genre_id: '',
         release: '',
+        rating: '',
+        duration: '',
+        video_source: 'upload',
         image: null,
         video_link: '',
         video_file: null,

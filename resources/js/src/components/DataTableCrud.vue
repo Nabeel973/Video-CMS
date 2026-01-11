@@ -226,6 +226,14 @@ const openModal = async (itemData = null) => {
                         : [];
                 }
                 
+                // Determine video_source based on existing data
+                if (data.video_source) {
+                    form.video_source = data.video_source;
+                } else {
+                    // Auto-detect: if video_file exists, use 'upload', else if video_link exists, use 'link'
+                    form.video_source = data.video_file ? 'upload' : (data.video_link ? 'link' : 'upload');
+                }
+                
                 // Handle cast_info - check both cast_info (formatted) and movie_casts (raw relationship)
                 if (data.cast_info && Array.isArray(data.cast_info)) {
                     // Use formatted cast_info if available

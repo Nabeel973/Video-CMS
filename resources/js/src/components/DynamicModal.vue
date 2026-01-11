@@ -25,6 +25,7 @@
                                         :error="errors[field.name]"
                                         :disabled="isFieldDisabled(field)"
                                         :options="getFieldOptions(field)"
+                                        :isEdit="props.isEdit"
                                         @update:modelValue="updateField(field.name, $event)"
                                     />
                                 </div>
@@ -58,6 +59,7 @@ import FormMultiSelect from './form/FormMultiSelect.vue';
 import FormSelect from './form/FormSelect.vue';
 import FormSwitch from './form/FormSwitch.vue';
 import FormTextarea from './form/FormTextarea.vue';
+import FormDuration from './form/FormDuration.vue';
 
 const props = defineProps({
     isOpen: {
@@ -246,12 +248,14 @@ const getFieldComponent = (type) => {
         'text': FormInput,
         'email': FormInput,
         'password': FormInput,
+        'number': FormInput,
         'select': FormSelect,
         'textarea': FormTextarea,
         'switch': FormSwitch,
         'file': FormFile,
         'multiselect': FormMultiSelect,
         'cast_table': DynamicCastTable,
+        'duration': FormDuration,
     };
     return componentMap[type] || FormInput;
 };

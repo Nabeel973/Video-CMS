@@ -16,6 +16,9 @@ class Movie extends Model
         'name',
         'genre_id',
         'release',
+        'rating',
+        'duration',
+        'video_source',
         'category_id',
         'image',
         'video_link',
@@ -27,6 +30,7 @@ class Movie extends Model
     ];
 
     protected $casts = [
+        'rating' => 'decimal:1',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'

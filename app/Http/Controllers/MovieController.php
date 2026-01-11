@@ -56,10 +56,18 @@ class MovieController extends Controller
                 $validatedData['image'] = $imagePath;
             }
 
-            if ($request->hasFile('video_file')) {
-                $video = $request->file('video_file');
-                $videoPath = $video->store('movies/videos', 'public');
-                $validatedData['video_file'] = $videoPath;
+            // Handle video based on video_source
+            if ($validatedData['video_source'] === 'upload') {
+                if ($request->hasFile('video_file')) {
+                    $video = $request->file('video_file');
+                    $videoPath = $video->store('movies/videos', 'public');
+                    $validatedData['video_file'] = $videoPath;
+                }
+                // Clear video_link when uploading
+                $validatedData['video_link'] = null;
+            } else if ($validatedData['video_source'] === 'link') {
+                // Clear video_file when using link
+                $validatedData['video_file'] = null;
             }
 
             // Remove tags and cast_info from validated data as they'll be handled separately
@@ -182,15 +190,27 @@ class MovieController extends Controller
                 }
             }
 
-            if ($request->hasFile('video_file')) {
-                $video = $request->file('video_file');
-                $videoPath = $video->store('movies/videos', 'public');
-                $validatedData['video_file'] = $videoPath;
-                
-                // Delete old video if exists
+            // Handle video based on video_source
+            if ($validatedData['video_source'] === 'upload') {
+                if ($request->hasFile('video_file')) {
+                    $video = $request->file('video_file');
+                    $videoPath = $video->store('movies/videos', 'public');
+                    $validatedData['video_file'] = $videoPath;
+                    
+                    // Delete old video if exists
+                    if ($movie->video_file && \Storage::disk('public')->exists($movie->video_file)) {
+                        \Storage::disk('public')->delete($movie->video_file);
+                    }
+                }
+                // Clear video_link when uploading
+                $validatedData['video_link'] = null;
+            } else if ($validatedData['video_source'] === 'link') {
+                // Delete old video file if switching to link
                 if ($movie->video_file && \Storage::disk('public')->exists($movie->video_file)) {
                     \Storage::disk('public')->delete($movie->video_file);
                 }
+                // Clear video_file when using link
+                $validatedData['video_file'] = null;
             }
 
             // Remove tags and cast_info from validated data as they'll be handled separately

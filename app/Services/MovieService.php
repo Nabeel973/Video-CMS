@@ -82,12 +82,50 @@ class MovieService
             'tags' => 'nullable|array',
             'genre_id' => 'required|exists:genres,id',
             'release' => 'required|string|max:255',
+            'rating' => 'required|numeric|min:0|max:5|regex:/^\d+(\.\d{1})?$/',
+            'duration' => [
+                'required',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) {
+                    // Check if duration is empty
+                    if (empty($value) || trim($value) === '') {
+                        $fail('The duration field is required.');
+                        return;
+                    }
+                    
+                    // Check format
+                    if (!preg_match('/^\d+h\s*\d+m$/', $value)) {
+                        $fail('The duration must be in the format Xh Ym (e.g., 2h 30m).');
+                        return;
+                    }
+                    
+                    // Check if duration is not "0h 0m"
+                    if (preg_match('/^(\d+)h\s*(\d+)m$/', $value, $matches)) {
+                        $hours = (int)$matches[1];
+                        $minutes = (int)$matches[2];
+                        if ($hours === 0 && $minutes === 0) {
+                            $fail('The duration must be greater than 0h 0m.');
+                        }
+                    }
+                },
+            ],
+            'video_source' => 'required|in:upload,link',
             'video_link' => 'nullable|string|url|max:500',
             'category_id' => 'required|exists:categories,id',
             'details' => 'nullable|string',
             'cast_info' => 'nullable|array',
             'status' => 'required|in:active,inactive',
         ];
+        
+        // Conditional validation based on video_source
+        if (isset($data['video_source'])) {
+            if ($data['video_source'] === 'link') {
+                $rules['video_link'] = 'required|string|url|max:500';
+            } else if ($data['video_source'] === 'upload') {
+                // video_file validation is handled separately for file uploads
+            }
+        }
 
         // File validation rules - only apply when files are actually being uploaded
         $hasImageFile = $request && $request->hasFile('image');
