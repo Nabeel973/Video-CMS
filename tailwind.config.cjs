@@ -22,6 +22,14 @@ module.exports = {
                     light: "#ebe4f7",
                     "dark-light": "rgb(128 93 202 / 15%)",
                 },
+                // Cinema Theme Colors
+                "cinema-bg": "#0a0a0b",
+                "cinema-bg-secondary": "#111113",
+                "cinema-bg-card": "#161618",
+                "cinema-bg-elevated": "#1c1c1f",
+                "cinema-accent": "#e50914",
+                "cinema-secondary": "#f5c518",
+                "cinema-border": "#27272a",
                 success: {
                     DEFAULT: "#00ab55",
                     light: "#ddf5f0",
@@ -60,6 +68,8 @@ module.exports = {
             },
             fontFamily: {
                 nunito: ["Nunito", "sans-serif"],
+                "cinema-display": ["Bebas Neue", "Oswald", "sans-serif"],
+                "cinema-body": ["DM Sans", "Inter", "sans-serif"],
             },
             spacing: {
                 4.5: "18px",

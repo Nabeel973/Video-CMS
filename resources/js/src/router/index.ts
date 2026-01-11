@@ -9,6 +9,25 @@ import UserManagementView from '../views/admin/users/index.vue';
 import HomeView from '../views/index.vue';
 
 const routes: RouteRecordRaw[] = [
+    // ==========================================
+    // CINEMA / PUBLIC MOVIE PAGES
+    // ==========================================
+    {
+        path: '/movies',
+        name: 'movies',
+        component: () => import(/* webpackChunkName: "movies-page" */ '../views/cinema/MoviesPage.vue'),
+        meta: { layout: 'cinema' },
+    },
+    {
+        path: '/movies/:id',
+        name: 'movie-details',
+        component: () => import(/* webpackChunkName: "movie-details" */ '../views/cinema/MovieDetailsPage.vue'),
+        meta: { layout: 'cinema' },
+    },
+
+    // ==========================================
+    // ADMIN / DASHBOARD ROUTES
+    // ==========================================
     // dashboard
     { 
         path: '/dashboard', 
@@ -114,14 +133,21 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
     const store = useAppStore();
     const authStore = useAuthStore();
+    
+    // Public pages that don't require authentication
     const publicPages = ['/auth/boxed-signin', '/auth/boxed-signup'];
-    const authRequired = !publicPages.includes(to.path);
+    
+    // Check if the route is a cinema/public route (no auth required)
+    const isCinemaRoute = to.meta?.layout === 'cinema';
+    const isPublicPage = publicPages.includes(to.path) || isCinemaRoute;
+    const authRequired = !isPublicPage;
 
     // Redirect authenticated users from home to dashboard
     if (to.path === '/' && authStore.isLoggedIn) {
         return next('/dashboard');
     }
 
+    // Check authentication for protected routes
     if (authRequired && !authStore.isLoggedIn) {
         // If there's a token, try to fetch the user
         if (authStore.token) {
@@ -137,8 +163,11 @@ router.beforeEach(async (to, from, next) => {
         return next('/auth/boxed-signin');
     }
 
+    // Set layout based on route meta
     if (to?.meta?.layout == 'auth') {
         store.setMainLayout('auth');
+    } else if (to?.meta?.layout == 'cinema') {
+        store.setMainLayout('cinema');
     } else {
         store.setMainLayout('app');
     }

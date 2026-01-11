@@ -15,6 +15,9 @@ app.use(router);
 // main app css
 import "@/assets/css/app.css";
 
+// cinema theme css
+import "@/assets/css/cinema.css";
+
 // perfect scrollbar
 import { PerfectScrollbarPlugin } from "vue3-perfect-scrollbar";
 app.use(PerfectScrollbarPlugin);
